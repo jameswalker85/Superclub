@@ -1,0 +1,726 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Superclub Manager</title>
+    <style>
+        :root {
+            --pitch-green: #2e7d32;
+            --pitch-light: #388e3c;
+            --white: #ffffff;
+            --accent: #ffd700; /* Gold */
+            --sim-win: #2e7d32;
+            --sim-loss: #c62828;
+            --draw-color: #616161;
+            --dark-overlay: rgba(0, 0, 0, 0.92);
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: radial-gradient(circle, var(--pitch-light) 0%, var(--pitch-green) 100%);
+            color: var(--white);
+            margin: 0;
+            padding: 10px;
+            text-align: center;
+            padding-bottom: 80px;
+            overflow-x: hidden;
+        }
+        h1 { text-transform: uppercase; letter-spacing: 2px; margin-bottom: 5px; font-size: 1.6em;}
+        .season-header { font-size: 0.9em; opacity: 0.8; margin-bottom: 15px; font-weight: bold; letter-spacing: 1px; }
+        
+        .card {
+            background: rgba(0, 0, 0, 0.75);
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 15px;
+            border: 1px solid rgba(255,255,255,0.15);
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+            position: relative;
+        }
+
+        .hidden { display: none !important; }
+
+        /* Inputs */
+        .input-group { display: flex; justify-content: center; margin-bottom: 8px; }
+        input, select { padding: 8px; border-radius: 5px; border: none; font-size: 16px; }
+        input { width: 130px; margin-right: 5px; }
+        
+        /* Buttons */
+        button {
+            cursor: pointer;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            font-size: 1em;
+            font-weight: bold;
+            transition: transform 0.1s;
+        }
+        button:active { transform: scale(0.95); }
+        .btn-gold { background-color: var(--accent); color: #000; box-shadow: 0 0 10px var(--accent); font-size: 1.2em; padding: 15px 30px;}
+        .btn-secondary { background-color: #ddd; color: #333; }
+        .btn-next { background-color: var(--accent); color: #000; width: 100%; margin-top: 10px; padding: 15px;}
+        .btn-supercup { background-color: #000; color: var(--accent); border: 2px solid var(--accent); margin-top: 20px; font-size: 0.9em;}
+        
+        /* Match Buttons */
+        .match-actions { display: flex; gap: 5px; justify-content: center; margin-top: 5px; }
+        .btn-outcome { flex: 1; padding: 12px 5px; font-size: 0.9em; box-shadow: 0 2px 4px rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.2);}
+        
+        /* TEAM COLORS */
+        .btn-Red { background-color: #d32f2f; color: white; }
+        .btn-Blue { background-color: #1565c0; color: white; }
+        .btn-Yellow { background-color: #ffeb3b; color: black; }
+        .btn-Purple { background-color: #7b1fa2; color: white; }
+        .btn-Green { background-color: #2e7d32; color: white; }
+        .btn-Pink { background-color: #e91e63; color: white; }
+        .btn-Grey { background-color: #757575; color: white; }
+
+        /* SIM Colors */
+        .btn-sim-win { background-color: var(--sim-win); color: white; }
+        .btn-sim-draw { background-color: var(--draw-color); color: white; }
+        .btn-sim-loss { background-color: var(--sim-loss); color: white; }
+        .btn-draw-neutral { background-color: #424242; color: #ccc; font-size: 0.8em; max-width: 60px;}
+
+        /* League Table */
+        table { width: 100%; border-collapse: collapse; font-size: 0.9em; }
+        th { background-color: rgba(0,0,0,0.8); padding: 8px; }
+        td { padding: 8px; border-bottom: 1px solid rgba(255,255,255,0.1); }
+        .team-badge { width: 14px; height: 14px; display: inline-block; margin-right: 6px; border-radius: 50%; border: 1px solid white; vertical-align: middle;}
+        
+        .badge-Red { background-color: #d32f2f; }
+        .badge-Blue { background-color: #1565c0; }
+        .badge-Yellow { background-color: #ffeb3b; }
+        .badge-Purple { background-color: #7b1fa2; }
+        .badge-Green { background-color: #2e7d32; }
+        .badge-Pink { background-color: #e91e63; }
+        .badge-Grey { background-color: #757575; }
+
+        .leader-row { 
+            background: linear-gradient(90deg, rgba(255, 215, 0, 0.2) 0%, rgba(0,0,0,0) 100%);
+            border-left: 4px solid var(--accent);
+        }
+
+        /* Fixtures */
+        .fixture-row { background: rgba(255,255,255,0.1); padding: 10px; border-radius: 8px; margin-bottom: 10px; }
+        .fixture-title { font-weight: bold; font-size: 1.1em; display: flex; justify-content: space-between; padding: 0 5px; margin-bottom: 5px;}
+        .sim-tag { background: #555; padding: 2px 6px; border-radius: 4px; font-size: 0.7em; vertical-align: middle;}
+        .result-display { font-weight: bold; color: var(--accent); margin-top: 5px; font-size: 1.1em; }
+        
+        /* SCROLLABLE OVERLAYS */
+        #victory-screen, #superduper-screen, #offseason-screen {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: var(--dark-overlay);
+            display: flex; flex-direction: column; 
+            align-items: center; justify-content: flex-start;
+            z-index: 100;
+            padding: 20px;
+            box-sizing: border-box;
+            overflow-y: auto;
+        }
+
+        #victory-screen { z-index: 200; justify-content: center;}
+
+        .overlay-content {
+            width: 100%; max-width: 600px; text-align: center; margin-top: 20px; margin-bottom: 40px;
+        }
+
+        .trophy { font-size: 8vh; margin-bottom: 2vh; animation: bounce 1s infinite alternate; }
+        .overlay-title { color: var(--accent); font-size: 5vh; margin: 1vh 0; line-height: 1.1; }
+        .overlay-subtitle { font-size: 2.5vh; margin-bottom: 3vh; opacity: 0.9; }
+
+        @keyframes bounce { from { transform: translateY(0); } to { transform: translateY(-10px); } }
+
+        /* Off-Season Specifics */
+        .os-step { background: rgba(255,255,255,0.05); padding: 15px; margin-bottom: 15px; border-radius: 8px; text-align: left; border-left: 3px solid var(--accent); }
+        .os-step h3 { margin: 0 0 5px 0; color: var(--accent); font-size: 1.1em; }
+        .os-step p { margin: 0; font-size: 0.9em; opacity: 0.85; line-height: 1.4; }
+        
+        .finance-table { width: 100%; margin-top: 10px; font-size: 0.9em; border-collapse: collapse; }
+        .finance-table td { border-bottom: 1px solid rgba(255,255,255,0.1); padding: 8px 4px; vertical-align: middle; }
+        .finance-amount { color: var(--accent); font-weight: bold; text-align: right; }
+        
+        .band-tag { 
+            display: inline-block; font-size: 0.75em; padding: 2px 6px; border-radius: 4px; 
+            margin-left: 5px; text-transform: uppercase; font-weight: bold; letter-spacing: 0.5px;
+            border: 1px solid rgba(255,255,255,0.3); background: rgba(0,0,0,0.3); color: #ccc;
+        }
+        .band-new { border-color: #81c784; color: #81c784; } /* Light Green */
+        .band-est { border-color: #64b5f6; color: #64b5f6; } /* Light Blue */
+        .band-mid { border-color: #ffb74d; color: #ffb74d; } /* Orange */
+        .band-title { border-color: #ffd700; color: #ffd700; } /* Gold */
+
+        /* SuperDuper Buttons */
+        #superduper-buttons { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; width: 100%; }
+        #superduper-buttons button { flex: 1 1 40%; min-width: 120px; font-size: 2.5vh; padding: 1.5vh 10px; }
+
+        /* Confetti Canvas */
+        #confetti-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 300; }
+
+    </style>
+</head>
+<body>
+    
+    <canvas id="confetti-canvas"></canvas>
+
+    <h1>Superclub Manager</h1>
+    <div id="season-display" class="season-header hidden">SEASON 1</div>
+
+    <div id="setup-screen" class="card">
+        <h2>Match Setup</h2>
+        <div style="margin-bottom: 15px;">
+            <label>Target Points:</label><br>
+            <input type="number" id="target-score" value="100" style="width: 60px; text-align: center; margin-top:5px;">
+        </div>
+        <div id="player-inputs"></div>
+        <br>
+        <button id="add-btn" class="btn-secondary" onclick="addPlayerInput()">+ Add Manager</button>
+        <br><br>
+        <button class="btn-gold" onclick="kickOffGame()">KICK OFF!</button>
+    </div>
+
+    <div id="dashboard" class="hidden">
+        
+        <div class="card">
+            <h2>League Table</h2>
+            <table id="league-table">
+                <thead>
+                    <tr>
+                        <th width="10%">#</th>
+                        <th width="50%" style="text-align:left;">Manager</th>
+                        <th width="20%">Stars</th>
+                        <th width="20%">Pts</th>
+                    </tr>
+                </thead>
+                <tbody id="table-body"></tbody>
+            </table>
+        </div>
+
+        <div class="card">
+            <h2 id="gameweek-title">Gameweek 1</h2>
+            <div id="fixtures-container"></div>
+            <button id="next-round-btn" class="btn-next hidden" onclick="nextRound()">Next Round >></button>
+        </div>
+        
+        <button class="btn-supercup" onclick="attemptSupercup()">🏆 Attempt Supercup Final</button>
+        <br>
+        <button class="btn-secondary" onclick="if(confirm('Reset entire game?')) location.reload()" style="font-size:0.8em; margin-top: 20px;">Reset Game</button>
+    </div>
+
+    <div id="offseason-screen" class="hidden" style="display:none;">
+        <div class="overlay-content">
+            <h1 class="overlay-title" id="os-title">OFF-SEASON</h1>
+            <p class="overlay-subtitle">Prepare for the next campaign</p>
+
+            <div class="os-step">
+                <h3>1. Finances & Rewards</h3>
+                <p id="os-finance-text">Collect <b>Placement Rewards</b> (table below) and <b>Stadium Income</b>.</p>
+                <table class="finance-table" id="finance-list"></table>
+            </div>
+
+            <div class="os-step">
+                <h3>2. Training</h3>
+                <p>Roll to upgrade potential stars.</p>
+                <p id="os-order-1"><b>Order:</b> League Leader➡️ Clockwise.</p>
+            </div>
+
+            <div class="os-step">
+                <h3>3. Scouting</h3>
+                <p>Draw/Buy players from your scouting zones.</p>
+                <p id="os-order-2"><b>Order:</b> League Leader ➡️ Clockwise.</p>
+            </div>
+
+            <div class="os-step">
+                <h3>4. Investments</h3>
+                <p>Upgrade Scouting, Training or Stadium, and/or hire Key Staff (Max 2 actions).</p>
+                <p id="os-order-3"><b>Order:</b> League Leader ➡️ Clockwise.</p>
+            </div>
+
+            <div class="os-step">
+                <h3>5. <span id="os-step5-title">Deadline Day</span></h3>
+                <p id="os-step5-desc">Bidding war! Draw <b>one more player than managers</b> (Leader draws first & last).</p>
+                <p id="os-order-4"><b>Order:</b> League Leader starts the bidding.</p>
+            </div>
+
+            <button class="btn-gold" id="start-season-btn" onclick="proceedToNextSeason()">Start Season</button>
+        </div>
+    </div>
+
+    <div id="victory-screen" class="hidden" style="display:none;">
+        <div class="overlay-content">
+            <div class="trophy">🏆</div>
+            <h1 id="winner-name" class="overlay-title">WINNER</h1>
+            <h2 id="win-reason" class="overlay-subtitle">REACHED 100 POINTS</h2>
+            <button class="btn-secondary" onclick="location.reload()">New Game</button>
+        </div>
+    </div>
+
+    <div id="superduper-screen" class="hidden" style="display:none;">
+        <div class="overlay-content">
+            <div class="trophy">⚔️</div>
+            <h1 class="overlay-title">SUPERDUPER CUP</h1>
+            <p class="overlay-subtitle">Two or more managers reached 100 points!<br>Play the final match, then select winner:</p>
+            <div id="superduper-buttons"></div>
+        </div>
+    </div>
+
+    <script>
+        // --- AUDIO ---
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+        function playKickOffWhistle() {
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = 'triangle';
+            osc.frequency.setValueAtTime(2500, audioCtx.currentTime);
+            osc.frequency.exponentialRampToValueAtTime(1200, audioCtx.currentTime + 0.15);
+            gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.15);
+            osc.connect(gain); gain.connect(audioCtx.destination);
+            osc.start(); osc.stop(audioCtx.currentTime + 0.2);
+        }
+
+        function playFullTimeWhistle() {
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            const now = audioCtx.currentTime;
+            createTone(now, 0.1);
+            createTone(now + 0.2, 0.1);
+            createTone(now + 0.4, 0.6);
+        }
+
+        function createTone(time, duration) {
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = 'triangle';
+            osc.frequency.setValueAtTime(2500, time);
+            osc.frequency.exponentialRampToValueAtTime(1000, time + duration);
+            gain.gain.setValueAtTime(0.3, time);
+            gain.gain.exponentialRampToValueAtTime(0.01, time + duration);
+            osc.connect(gain); gain.connect(audioCtx.destination);
+            osc.start(time); osc.stop(time + duration);
+        }
+
+        function playVictorySound() {
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            const now = audioCtx.currentTime;
+            playNote(now, 523.25, 0.2); // C5
+            playNote(now + 0.2, 659.25, 0.2); // E5
+            playNote(now + 0.4, 783.99, 0.2); // G5
+            playNote(now + 0.6, 1046.50, 0.6); // C6
+        }
+
+        function playNote(time, freq, dur) {
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = 'sawtooth';
+            osc.frequency.value = freq;
+            gain.gain.setValueAtTime(0.1, time);
+            gain.gain.linearRampToValueAtTime(0, time + dur);
+            osc.connect(gain); gain.connect(audioCtx.destination);
+            osc.start(time); osc.stop(time + dur);
+        }
+
+        // --- STATE ---
+        let players = [];
+        const colors = ['Red', 'Blue', 'Yellow', 'Purple', 'Green', 'Pink', 'Grey'];
+        let inputCounter = 0;
+        const MAX_PLAYERS = 6;
+        let currentRound = 0;
+        let seasonCount = 0; // Starts at 0 for Pre-Season
+        let matchesForSeason = []; 
+        let targetScore = 100;
+        const rewardTiers = [100, 90, 80, 70, 60, 50];
+
+        // --- SETUP ---
+        function addPlayerInput() {
+            if (document.getElementById('player-inputs').children.length >= MAX_PLAYERS) {
+                alert("Max 6 managers reached.");
+                return;
+            }
+            const container = document.getElementById('player-inputs');
+            const div = document.createElement('div');
+            div.className = "input-group";
+            div.id = `input-row-${inputCounter}`;
+            
+            let defaultColor = colors[inputCounter % colors.length];
+            let colorOptions = colors.map(c => `<option value="${c}" ${c === defaultColor ? 'selected' : ''}>${c}</option>`).join('');
+            
+            div.innerHTML = `
+                <input type="text" placeholder="Manager ${inputCounter+1}" id="p-name-${inputCounter}">
+                <select id="p-color-${inputCounter}">${colorOptions}</select>
+            `;
+            container.appendChild(div);
+            div.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            inputCounter++;
+        }
+
+        addPlayerInput();
+        addPlayerInput();
+
+        function kickOffGame() {
+            const userTarget = parseInt(document.getElementById('target-score').value);
+            if(userTarget) targetScore = userTarget;
+
+            players = [];
+            const colorCheck = new Set();
+            let duplicateFound = false;
+
+            for (let i = 0; i < inputCounter; i++) {
+                const nameInput = document.getElementById(`p-name-${i}`);
+                const colorInput = document.getElementById(`p-color-${i}`);
+                
+                if(nameInput && nameInput.value.trim() !== "") {
+                    if (colorCheck.has(colorInput.value)) duplicateFound = true;
+                    colorCheck.add(colorInput.value);
+
+                    players.push({
+                        id: players.length, 
+                        name: nameInput.value,
+                        color: colorInput.value,
+                        stars: 0, 
+                        points: 20, 
+                        wins: 0, draws: 0, losses: 0
+                    });
+                }
+            }
+
+            if(duplicateFound) { alert("Two managers cannot have the same team colour!"); return; }
+            if(players.length < 2) { alert("Need at least 2 managers."); return; }
+
+            generateSchedule(players.length);
+            
+            // Go to Pre-Season (Season 0)
+            document.getElementById('setup-screen').classList.add('hidden');
+            showOffSeason();
+        }
+
+        // --- SCHEDULE ---
+        function generateSchedule(count) {
+            if (count === 2) matchesForSeason = ['ALL_SIM', [[0, 1]], 'ALL_SIM', [[1, 0]], 'ALL_SIM'];
+            else if (count === 3) matchesForSeason = [[[0, 1], 2], 'ALL_SIM', [[0, 2], 1], 'ALL_SIM', [[1, 2], 0]];
+            else if (count === 4) matchesForSeason = [[[0, 3], [1, 2]], 'ALL_SIM', [[0, 2], [1, 3]], 'ALL_SIM', [[0, 1], [2, 3]]];
+            else if (count === 5) matchesForSeason = [[[0, 1], [2, 3], 4], [[0, 2], [1, 4], 3], [[0, 4], [1, 3], 2], [[0, 3], [2, 4], 1], [[1, 2], [3, 4], 0]];
+            else if (count === 6) matchesForSeason = [[[0, 5], [1, 4], [2, 3]], [[0, 4], [1, 3], [2, 5]], [[0, 3], [1, 2], [4, 5]], [[0, 2], [1, 5], [3, 4]], [[0, 1], [2, 4], [3, 5]]];
+        }
+
+        // --- UI ---
+        function renderRound() {
+            const container = document.getElementById('fixtures-container');
+            container.innerHTML = '';
+            const btn = document.getElementById('next-round-btn');
+            
+            if (currentRound >= matchesForSeason.length) {
+                document.getElementById('gameweek-title').innerText = "End of Season";
+                container.innerHTML = `<div style="padding:20px; font-style:italic;">Season ${seasonCount} Complete.<br>Full Time!</div>`;
+                btn.innerText = "End Season & Check Winner";
+                btn.classList.remove('hidden');
+                btn.onclick = finishSeason; 
+                return;
+            }
+
+            document.getElementById('gameweek-title').innerText = `Gameweek ${currentRound + 1} of ${matchesForSeason.length}`;
+            btn.innerText = "Next Round >>";
+            btn.onclick = nextRound; 
+
+            const roundData = matchesForSeason[currentRound];
+            if (roundData === 'ALL_SIM') {
+                container.innerHTML = `<div style="margin-bottom:10px; font-style:italic; opacity:0.8;">Simulation Round</div>`;
+                players.forEach(p => renderSimRow(p.id, container));
+            } else {
+                roundData.forEach(matchup => {
+                    if (Array.isArray(matchup)) renderPvPRow(matchup[0], matchup[1], container);
+                    else renderSimRow(matchup, container);
+                });
+            }
+            btn.classList.add('hidden');
+        }
+
+        function renderPvPRow(homeId, awayId, container) {
+            const h = players[homeId];
+            const a = players[awayId];
+            const div = document.createElement('div');
+            div.className = 'fixture-row';
+            div.innerHTML = `
+                <div class="fixture-title">
+                    <span><span class="team-badge badge-${h.color}"></span>${h.name}</span>
+                    <span>${a.name}<span class="team-badge badge-${a.color}" style="margin-left:5px; margin-right:0;"></span></span>
+                </div>
+                <div class="match-actions">
+                    <button class="btn-outcome btn-${h.color}" onclick="resolvePvP(${homeId}, ${awayId}, 'HOME', this)">${h.name}</button>
+                    <button class="btn-outcome btn-draw-neutral" onclick="resolvePvP(${homeId}, ${awayId}, 'DRAW', this)">Draw</button>
+                    <button class="btn-outcome btn-${a.color}" onclick="resolvePvP(${homeId}, ${awayId}, 'AWAY', this)">${a.name}</button>
+                </div>
+                <div class="result-display hidden"></div>`;
+            container.appendChild(div);
+        }
+
+        function renderSimRow(pId, container) {
+            const p = players[pId];
+            const div = document.createElement('div');
+            div.className = 'fixture-row';
+            div.innerHTML = `
+                <div class="fixture-title">
+                    <span><span class="team-badge badge-${p.color}"></span>${p.name}</span>
+                    <span class="sim-tag">SIM MATCH</span>
+                </div>
+                <div class="match-actions">
+                    <button class="btn-outcome btn-sim-win" onclick="resolveSim(${pId}, 'WIN', this)">Win</button>
+                    <button class="btn-outcome btn-sim-draw" onclick="resolveSim(${pId}, 'DRAW', this)">Draw</button>
+                    <button class="btn-outcome btn-sim-loss" onclick="resolveSim(${pId}, 'LOSS', this)">Loss</button>
+                </div>
+                <div class="result-display hidden"></div>`;
+            container.appendChild(div);
+        }
+
+        // --- LOGIC ---
+        function resolvePvP(hId, aId, result, btn) {
+            updateUIResult(btn, players[hId], players[aId], result);
+            const h = players[hId]; const a = players[aId];
+            if (result === 'HOME') { h.points += 6; h.wins++; a.losses++; }
+            else if (result === 'AWAY') { a.points += 6; a.wins++; h.losses++; }
+            else { h.points += 2; h.draws++; a.points += 2; a.draws++; }
+            updateTable(); checkRoundComplete();
+        }
+
+        function resolveSim(pId, result, btn) {
+            updateUIResult(btn, players[pId], null, result);
+            const p = players[pId];
+            if (result === 'WIN') { p.points += 6; p.wins++; }
+            else if (result === 'DRAW') { p.points += 2; p.draws++; }
+            else { p.losses++; }
+            updateTable(); checkRoundComplete();
+        }
+
+        function updateUIResult(btn, p1, p2, result) {
+            const parent = btn.parentElement.parentElement;
+            const display = parent.querySelector('.result-display');
+            btn.parentElement.classList.add('hidden');
+            display.classList.remove('hidden');
+            display.classList.add('result-recorded');
+            if(p2) { // PvP
+                if(result === 'HOME') { display.innerText = `${p1.name} Wins!`; display.style.color = getComputedStyle(document.documentElement).getPropertyValue(`--${p1.color}`); }
+                else if(result === 'AWAY') { display.innerText = `${p2.name} Wins!`; display.style.color = getComputedStyle(document.documentElement).getPropertyValue(`--${p2.color}`); }
+                else { display.innerText = "Draw"; display.style.color = "#ccc"; }
+            } else { // Sim
+                if(result === 'WIN') { display.innerText = "Win (+6)"; display.style.color = "var(--sim-win)"; }
+                else if(result === 'DRAW') { display.innerText = "Draw (+2)"; display.style.color = "#ccc"; }
+                else { display.innerText = "Loss (0)"; display.style.color = "var(--sim-loss)"; }
+            }
+        }
+
+        // --- END OF SEASON FLOW ---
+        function finishSeason() {
+            playFullTimeWhistle();
+
+            const winners = players.filter(p => p.points >= targetScore);
+            if (winners.length === 1) {
+                triggerVictory(winners[0].name, `REACHED ${winners[0].points} POINTS`);
+            } else if (winners.length > 1) {
+                triggerSuperDuperCup(winners);
+            } else {
+                showOffSeason();
+            }
+        }
+
+        function getBandName(pts) {
+            if (pts >= 80) return { name: "Title Contender", cls: "band-title" };
+            if (pts >= 60) return { name: "Mid-table", cls: "band-mid" };
+            if (pts >= 40) return { name: "Established", cls: "band-est" };
+            return { name: "Newly Promoted", cls: "band-new" };
+        }
+
+        function showOffSeason() {
+            const screen = document.getElementById('offseason-screen');
+            screen.style.display = 'flex';
+            screen.classList.remove('hidden');
+
+            const isPreSeason1 = (seasonCount === 0);
+            
+            // Text Adjustments based on Season
+            if (isPreSeason1) {
+                document.getElementById('os-title').innerText = "PRE-SEASON SETUP";
+                document.getElementById('os-finance-text').innerText = "All managers receive starting budget.";
+                
+                document.getElementById('os-order-1').innerHTML = "<b>Order:</b> 1st Manager ➡️ Clockwise.";
+                document.getElementById('os-order-2').innerHTML = "<b>Order:</b> 1st Manager ➡️ Clockwise.";
+                document.getElementById('os-order-3').innerHTML = "<b>Order:</b> 1st Manager ➡️ Clockwise.";
+                document.getElementById('os-order-4').innerHTML = "<b>Order:</b> 1st Manager starts the bidding.";
+                
+                document.getElementById('start-season-btn').innerText = "Start Season 1";
+            } else {
+                document.getElementById('os-title').innerText = "OFF-SEASON";
+                document.getElementById('os-finance-text').innerHTML = "Collect <b>Placement Rewards</b> (table below) and <b>Stadium Income</b>.<br><br><i>⚠️ Pay 1M per Star in your squad wages.</i>";
+
+                document.getElementById('os-order-1').innerHTML = "<b>Order:</b> League Leader ➡️ Clockwise.";
+                document.getElementById('os-order-2').innerHTML = "<b>Order:</b> League Leader ➡️ Clockwise.";
+                document.getElementById('os-order-3').innerHTML = "<b>Order:</b> League Leader ➡️ Clockwise.";
+                document.getElementById('os-order-4').innerHTML = "<b>Order:</b> League Leader starts the bidding.";
+
+                document.getElementById('start-season-btn').innerText = `Start Season ${seasonCount + 1}`;
+            }
+            
+            // Generate Finance Table
+            const tbody = document.getElementById('finance-list');
+            tbody.innerHTML = '';
+            
+            if (isPreSeason1) {
+                // Flat 120M for everyone
+                players.forEach((p, index) => {
+                    tbody.innerHTML += `
+                        <tr>
+                            <td style="line-height:1.4;">
+                                ${p.name}<br>
+                                <span class="band-tag band-new">Starting Out</span>
+                            </td>
+                            <td class="finance-amount">120M</td>
+                        </tr>
+                    `;
+                });
+            } else {
+                // Sorted rewards
+                let sorted = [...players].sort((a,b) => {
+                    if (b.points !== a.points) return b.points - a.points;
+                    return b.stars - a.stars;
+                });
+                
+                sorted.forEach((p, index) => {
+                    const reward = rewardTiers[index] || 50; 
+                    const bandInfo = getBandName(p.points);
+                    
+                    tbody.innerHTML += `
+                        <tr>
+                            <td style="line-height:1.4;">
+                                ${index+1}. ${p.name} <span style="opacity:0.6; font-size:0.9em;">(${p.points}pts)</span><br>
+                                <span class="band-tag ${bandInfo.cls}">${bandInfo.name}</span>
+                            </td>
+                            <td class="finance-amount">${reward}M</td>
+                        </tr>
+                    `;
+                });
+            }
+        }
+
+        function proceedToNextSeason() {
+            document.getElementById('offseason-screen').classList.add('hidden');
+            document.getElementById('offseason-screen').style.display = 'none';
+            playKickOffWhistle();
+            seasonCount++;
+            currentRound = 0;
+            document.getElementById('season-display').classList.remove('hidden');
+            document.getElementById('dashboard').classList.remove('hidden');
+            document.getElementById('season-display').innerText = `SEASON ${seasonCount}`;
+            renderRound();
+            updateTable();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // --- VICTORY ---
+        function triggerVictory(name, reason) {
+            document.getElementById('superduper-screen').classList.add('hidden');
+            document.getElementById('superduper-screen').style.display = 'none';
+            const screen = document.getElementById('victory-screen');
+            screen.style.display = 'flex'; 
+            screen.classList.remove('hidden');
+            document.getElementById('winner-name').innerText = name;
+            document.getElementById('win-reason').innerText = reason;
+            
+            playVictorySound();
+            startConfetti();
+        }
+
+        function triggerSuperDuperCup(finalists) {
+            const screen = document.getElementById('superduper-screen');
+            screen.style.display = 'flex'; 
+            screen.classList.remove('hidden');
+            const btnContainer = document.getElementById('superduper-buttons');
+            btnContainer.innerHTML = '';
+            finalists.forEach(p => {
+                const btn = document.createElement('button');
+                btn.className = `btn-${p.color}`;
+                btn.innerText = `${p.name} Won!`;
+                btn.onclick = function() { triggerVictory(p.name, "WON THE SUPERDUPER CUP!"); };
+                btnContainer.appendChild(btn);
+            });
+        }
+
+        function attemptSupercup() {
+            let leader = [...players].sort((a,b) => b.points - a.points)[0];
+            if(confirm(`Is ${leader.name} playing the Supercup Final?`)) {
+                if(confirm(`Did ${leader.name} WIN the match?`)) {
+                    triggerVictory(leader.name, "SUPERCUP CHAMPION!");
+                } else { alert("Unlucky! The game continues..."); }
+            }
+        }
+
+        // --- ROUND HELPER ---
+        function checkRoundComplete() {
+            const total = document.querySelectorAll('.fixture-row').length;
+            const done = document.querySelectorAll('.result-recorded').length;
+            if (done === total) document.getElementById('next-round-btn').classList.remove('hidden');
+        }
+
+        function nextRound() {
+            currentRound++;
+            renderRound();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function updateTable() {
+            let sortedPlayers = [...players].sort((a, b) => {
+                if (b.points !== a.points) return b.points - a.points;
+                return b.stars - a.stars;
+            });
+            const tbody = document.getElementById('table-body');
+            tbody.innerHTML = '';
+            sortedPlayers.forEach((p, index) => {
+                const isLeader = index === 0;
+                const rowClass = isLeader ? 'leader-row' : '';
+                tbody.innerHTML += `<tr class="${rowClass}">
+                    <td>${index + 1}</td>
+                    <td style="text-align:left;">
+                        <span class="team-badge badge-${p.color}"></span> ${p.name} ${isLeader ? '👑' : ''}
+                    </td>
+                    <td><input type="number" value="${p.stars}" style="width:40px; text-align:center;" onchange="players.find(x=>x.id==${p.id}).stars=this.value"></td>
+                    <td style="font-weight:bold; color:var(--accent); font-size:1.2em;">${p.points}</td>
+                </tr>`;
+            });
+        }
+
+        // --- CONFETTI ---
+        function startConfetti() {
+            const canvas = document.getElementById("confetti-canvas");
+            const ctx = canvas.getContext("2d");
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            
+            const particles = [];
+            const particleCount = 150;
+            
+            for (let i = 0; i < particleCount; i++) {
+                particles.push({
+                    x: Math.random() * canvas.width,
+                    y: Math.random() * canvas.height - canvas.height,
+                    color: colors[Math.floor(Math.random() * colors.length)],
+                    size: Math.random() * 5 + 5,
+                    speedY: Math.random() * 3 + 2,
+                    speedX: Math.random() * 2 - 1
+                });
+            }
+
+            function animate() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                particles.forEach((p) => {
+                    ctx.fillStyle = p.color;
+                    ctx.fillRect(p.x, p.y, p.size, p.size);
+                    p.y += p.speedY;
+                    p.x += p.speedX;
+                    if (p.y > canvas.height) p.y = -10;
+                });
+                requestAnimationFrame(animate);
+            }
+            animate();
+        }
+    </script>
+</body>
+</html>
