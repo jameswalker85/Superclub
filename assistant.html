@@ -176,6 +176,711 @@
         <div id="setup-screen" class="card">
             <h2>Club Setup</h2>
             <div class="color-grid">
+                <button class="color-btn" style="background:#d32f2f" onclick="selectTheme('#d32f2f', 'white', 'Red Valley Rovers')">Red</button>
+                <button class="color-btn" style="background:#1976d2" onclick="selectTheme('#1976d2', 'white', 'Blue Mountain United')">Blue</button>
+                <button class="color-btn" style="background:#fbc02d; color:black;" onclick="selectTheme('#fbc02d', 'black', 'Yellow Bay Town')">Yellow</button>
+                <button class="color-btn" style="background:#7b1fa2" onclick="selectTheme('#7b1fa2', 'white', 'Purple Plain Athletic')">Purple</button>
+                <button class="color-btn" style="background:#388e3c" onclick="selectTheme('#388e3c', 'white', 'Green Hill Rangers')">Green</button>
+                <button class="color-btn" style="background:#e91e63" onclick="selectTheme('#e91e63', 'white', 'Pink River City')">Pink</button>
+            </div>
+            <select id="game-speed">
+                <option value="150">Quick Game (150M)</option>
+                <option value="120" selected>Normal Game (120M)</option>
+                <option value="90">Slow Game (90M)</option>
+            </select>
+            <button class="primary-btn" onclick="startAssistant()">Enter Dashboard</button>
+        </div>
+
+        <div id="main-dashboard" class="hidden">
+            
+            <div class="card">
+                <h2>The Bank</h2>
+                <div class="balance-display" id="bank-balance">120M</div>
+                <input type="number" id="transaction-amount" placeholder="Amount (e.g. 15)" min="1">
+                <div class="finance-controls">
+                    <button class="finance-btn btn-add" onclick="processTransaction('add')">+</button>
+                    <button class="finance-btn btn-sub" onclick="processTransaction('sub')">-</button>
+                </div>
+                <button class="primary-btn" id="wage-btn" onclick="payWages()" style="background-color: #555;">Pay Wages (0M)</button>
+            </div>
+
+            <div class="card">
+                <h2>Tactics Board</h2>
+                <div class="pitch">
+                    <div class="pitch-line">
+                        <div class="pitch-row">
+                            <select id="t-att1" class="pitch-slot slot-mand-att" onchange="handlePitchChange()"><option value="">ATT</option></select>
+                            <select id="t-att2" class="pitch-slot slot-mand-att" onchange="handlePitchChange()"><option value="">ATT</option></select>
+                            <select id="t-att3" class="pitch-slot" onchange="handlePitchChange()"><option value="">Opt</option></select>
+                            <select id="t-att4" class="pitch-slot" onchange="handlePitchChange()"><option value="">Opt</option></select>
+                        </div>
+                        <div class="row-score" id="score-att">0.0</div>
+                    </div>
+                    <div class="pitch-line">
+                        <div class="pitch-row">
+                            <select id="t-mid1" class="pitch-slot slot-mand-mid" onchange="handlePitchChange()"><option value="">MID</option></select>
+                            <select id="t-mid2" class="pitch-slot slot-mand-mid" onchange="handlePitchChange()"><option value="">MID</option></select>
+                            <select id="t-mid3" class="pitch-slot slot-mand-mid" onchange="handlePitchChange()"><option value="">MID</option></select>
+                            <select id="t-mid4" class="pitch-slot" onchange="handlePitchChange()"><option value="">Opt</option></select>
+                            <select id="t-mid5" class="pitch-slot" onchange="handlePitchChange()"><option value="">Opt</option></select>
+                        </div>
+                        <div class="row-score" id="score-mid">0.0</div>
+                    </div>
+                    <div class="pitch-line">
+                        <div class="pitch-row">
+                            <select id="t-gk" class="pitch-slot slot-mand-gk" onchange="handlePitchChange()">
+                                <option value="DEFAULT_GK">1⭐ GK</option>
+                            </select>
+                            <select id="t-def1" class="pitch-slot slot-mand-def" onchange="handlePitchChange()"><option value="">DEF</option></select>
+                            <select id="t-def2" class="pitch-slot slot-mand-def" onchange="handlePitchChange()"><option value="">DEF</option></select>
+                            <select id="t-def3" class="pitch-slot slot-mand-def" onchange="handlePitchChange()"><option value="">DEF</option></select>
+                            <select id="t-def4" class="pitch-slot" onchange="handlePitchChange()"><option value="">Opt</option></select>
+                        </div>
+                        <div class="row-score" id="score-def">1.0</div>
+                    </div>
+                </div>
+
+                <div class="tactics-summary">
+                    <div class="breakdown-grid">
+                        <span>Base Stars:</span> <span id="bd-base">1.0</span>
+                        <span>Position Penalties:</span> <span id="bd-pen" style="color:#f44336;">0.0</span>
+                        <span>Chemistry Links:</span> <span id="bd-chem" style="color:#4caf50;">+0.0</span>
+                        <span>Staff Bonus:</span> <span id="bd-staff" style="color:var(--theme-color);">+0.0</span>
+                    </div>
+                    
+                    <div class="breakdown-row-input">
+                        <span>Select Captain:</span>
+                        <select id="t-captain-name" onchange="calcMatchStrength()">
+                            <option value="">None</option>
+                        </select>
+                    </div>
+
+                    <div class="breakdown-row-input">
+                        <span>League Rank Bonus:</span>
+                        <select id="t-captain-bonus" onchange="calcMatchStrength()">
+                            <option value="0">+0 (Season 1)</option>
+                            <option value="1">+1 (1st Place)</option>
+                            <option value="2">+2 (2nd Place)</option>
+                            <option value="3">+3 (3rd Place)</option>
+                            <option value="4">+4 (4th Place)</option>
+                            <option value="5">+5 (5th Place)</option>
+                            <option value="6">+6 (6th Place)</option>
+                        </select>
+                    </div>
+
+                    <div class="match-stars-container">
+                        <div style="font-size: 0.9em; text-transform: uppercase; margin-bottom: 5px;">Match Day Total</div>
+                        <div class="match-stars" id="match-day-total">1.0</div>
+                        <div id="tactics-warning" class="validation-warning">Formation Incomplete!</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2 style="display: flex; justify-content: space-between;">
+                    Squad Folder <span id="roster-count" style="color:var(--text-muted); font-size:0.8em;">0/23</span>
+                </h2>
+                <input type="text" id="player-search" list="player-datalist" placeholder="Search to draft a player..." oninput="previewPlayer()">
+                <datalist id="player-datalist"></datalist>
+                <div id="player-preview" class="preview-card hidden">
+                    <div id="preview-name">Player Name</div>
+                    <div id="preview-stats" class="stats-badge">⭐ 0 | POT 0 | CH: None</div>
+                </div>
+                <button class="primary-btn" id="draft-btn" onclick="draftPlayer()" style="display:none; margin-bottom: 15px;">Draft Player</button>
+
+                <div id="roster-container">
+                    <div class="pos-section" id="sec-ATT" style="display:none;"><div class="pos-header">Attackers</div><div class="card-grid" id="grid-ATT"></div></div>
+                    <div class="pos-section" id="sec-MID" style="display:none;"><div class="pos-header">Midfielders</div><div class="card-grid" id="grid-MID"></div></div>
+                    <div class="pos-section" id="sec-DEF" style="display:none;"><div class="pos-header">Defenders</div><div class="card-grid" id="grid-DEF"></div></div>
+                    <div class="pos-section" id="sec-GK" style="display:none;"><div class="pos-header">Goalkeepers</div><div class="card-grid" id="grid-GK"></div></div>
+                    <div class="pos-section" id="sec-UTL" style="display:none;"><div class="pos-header">Utility</div><div class="card-grid" id="grid-UTL"></div></div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>Boardroom (Key Staff)</h2>
+                <div style="font-size: 0.85em; color: var(--text-muted); margin-bottom: 10px;">Hire up to 3 staff. Bonuses auto-apply.</div>
+                <select id="staff-1" onchange="handleStaffChange()"><option value="">-- Slot 1 Empty --</option></select>
+                <select id="staff-2" onchange="handleStaffChange()"><option value="">-- Slot 2 Empty --</option></select>
+                <select id="staff-3" onchange="handleStaffChange()"><option value="">-- Slot 3 Empty --</option></select>
+            </div>
+            
+        </div>
+    </div>
+
+    <script>
+        // --- DATABASE PARSER ---
+        const rawData = "AbaraATT46rAdamecGK3rAgudaDEF1lAguilarMID14AikenMID46AlfredoDEF3AliMID1AmosMID16ArayaATT13AudundasATT2AzikiweDEF1BabelATT14BadianeATT5rBakerATT4BakkerGK4rBalogDEF5rBambaGK3BankstonGK2BarbossaMID36BarrabarraMID34rBasséMID1BellagambaDEF2BertDEF13bBialasATT45BigdiATT3rBlancoATT56lBoatwrightMID1lBoelsmandMID4rBondarenkoMID4lBosMID1BraunMID15BredaliniMID24lBrewingUTL2bBriseboisATT3rBuckMID2rBumgarnerMID15bButcherDEF13CabreraMID13CampionATT3lCassessoGK3CavaliereATT3CazzolaDEF2rChamberlinMID25RChoiATT2lCiampiATT5rClarkeATT4CongerMID24ConteeDEF2bContrerasMID2CoughlinMID2lCoxMID1CrewsMID2rCruzATT2lDangeloMID2DejesusMID26rDekkerMID1DemirATT3DialloUTL4DiazDEF34DimitrovATT25lDimkaDEF1DjenieGK3DodsonATT2DuarteMID45DybevicMID23EganMID45EpplingDEF2lErnstDEF1rEscamillaMID35EspositoDEF3rFalconMID4rFauskiGK3FerraroMID46FinkMID4lFonnelyGK3FontanaMID23FriestaDEF23FuguaDEF12FujimotoUTL5FuscoATT3lGambleDEF3GaribaldiATT6bGarzaATT1GasconDEF3lGolubevATT45GoossensDEF3GraceDEF1GrafDEF34GreenMID4lGruberATT15GunsMID3bGurinUTL3rGustaveMID3GytcherATT4bHallDEF3HancockMID1HaroldMID34lHarrisMID34HättelwickATT2HavensDEF4lHawkDEF25rHeddadMID3HeinonenMID12HenkeDEF1HenrikssonMID3rHolsenDEF15HotiMID5bHydeMID4IqbalGK4IrishDEF1JakandeDEF1JensenDEF13JollyDEF13JudgeDEF1KhanMID2KnoxDEF23KocykDEF2lKomineATT1rKönigGK2rKriegerDEF2KutzmarkATT26lLamATT4LangballeMID1LeeATT34LeroyDEF1LightfootDEF24RLimaATT35LindströmMID5rLinzoATT1LiuATT2LundstromUTL3lLysenkoDEF24lMafaccaMID14MahmoodATT5lMahnekeATT46rMazurDEF14lMehtaMID2MelnykATT4rMichelATT3MordiMID2MorelDEF1MossoDEF2NagyATT35NeffyDEF2NemitzUTL3lNgigeDEF3rNguyenDEF1NielsenMID3NixDEF25NovakMID56NuzumATT34bO'FarrellATT1O'GallagherMID13lO'LearyUTL3bOcasioDEF34rOscarUTL2bPaceMID3lPaquetteGK4ParkerMID5rParraDEF45lPatelMID1PeligradATT24rPerezATT1PetrieDEF4rPiarDEF23lPisanoATT1PlunkettDEF3PopaMID36LPuntanenATT25RamsayATT34lRectorDEF35BReesATT1RegensMID1RegionaldoATT1RibeiroUTL3rRodríguezATT15rRossATT24RouxMID3bRuanATT3lRussoMID1SaldiviaATT3SandsDEF2rSchneiderATT4lSchockATT36SellersATT5SelmerATT3SenkoDEF4bSerranoMID23SesayDEF1SharmaATT1ShevchenkoMID3SinghDEF1SivertsenMID3lSkalnikGK2SnapperMID2SnowATT16SoaresMID1SolanaUTL3rSolarinDEF1SolisGK2SosaATT35rStonesDEF1StyanMID2bSunnyATT23SylvesterMID2lTammMID3rTanakaDEF14rTapiaDEF45TataUTL3lTestaMID1TodaroATT1TremblayDEF35bTurunenDEF15lUbaDEF1UmpierrezMID3bUribeDEF15ValeryDEF2rVanceATT2rVanwinkleDEF5VegaMID35rVelezMID1VerbicDEF2VettelDEF3lVolkovMID25WalterATT1lWilliamsMID5WongDEF3lWossUTL4WrightMID1YamadaMID26lYoderATT4bZaboATT14bZantiUTL4ZavalaMID3ZhangMID1ZulianiGK2";
+        
+        const playerDB = [];
+        const regex = /([A-ZÀ-Ÿ][a-zA-ZÀ-ÿ\'-]*)(ATT|MID|DEF|GK|UTL)(\d)(\d)?([rRlLbB](?=[A-ZÀ-Ÿ]|$))?/g;
+        let match;
+        
+        while ((match = regex.exec(rawData)) !== null) {
+            let chemMap = { 'r': 'Right', 'R': 'Right', 'l': 'Left', 'L': 'Left', 'b': 'Both', 'B': 'Both' };
+            playerDB.push({
+                name: match[1], pos: match[2],
+                base: parseInt(match[3]), pot: match[4] ? parseInt(match[4]) : parseInt(match[3]), 
+                chem: match[5] ? chemMap[match[5]] : 'None'
+            });
+        }
+        playerDB.sort((a, b) => a.name.localeCompare(b.name));
+
+        const defaultGK = { name: "DEFAULT_GK", pos: "GK", base: 1, pot: 1, chem: "None" };
+
+        // --- STAFF DATABASE ---
+        const staffDB = [
+            {name: "Meme Shearer", desc: "+1 status level on stadium income"},
+            {name: "Mae Khit", desc: "+1 player development"},
+            {name: "Garibaldi Sr", desc: "Get Garibaldi for 60M on deadline day"},
+            {name: "Hugh Gloves", desc: "+1 DEF", effect: {type: 'stat', pos: 'DEF', val: 1}},
+            {name: "Mira Clecure", desc: "Injured players back for next game"},
+            {name: "N. Ginear", desc: "+ 1 investment action"},
+            {name: "Dwight Price", desc: "+20M every season"},
+            {name: "Goldi Gerr", desc: "+1 player appeal"},
+            {name: "Bill Benjamin", desc: "+50M every season"},
+            {name: "Kip Dos Yeres", desc: "+2 scout cards"},
+            {name: "Jet Zetter", desc: "+1 scout card"},
+            {name: "Chuck Long", desc: "+1 ATT", effect: {type: 'stat', pos: 'ATT', val: 1}},
+            {name: "Sally Reecut", desc: "Half wages", effect: {type: 'wage', val: 0.5}},
+            {name: "Will Lowbawl", desc: "5M discount on deadline day"},
+            {name: "Line Upreed", desc: "Captain boost +2", effect: {type: 'cap', val: 2}},
+            {name: "Uppon A. Wei", desc: "+1 player development"},
+            {name: "Agil Itty", desc: "+1 DEF", effect: {type: 'stat', pos: 'DEF', val: 1}},
+            {name: "Chriss Crossover", desc: "+1 MID", effect: {type: 'stat', pos: 'MID', val: 1}},
+            {name: "Finn Isher", desc: "+1 ATT", effect: {type: 'stat', pos: 'ATT', val: 1}},
+            {name: "B. Friend", desc: "2x chemistry", effect: {type: 'chem', val: 2}},
+            {name: "Elle Capitán", desc: "Captain boost +1", effect: {type: 'cap', val: 1}},
+            {name: "Lastic Takl", desc: "+2 DEF", effect: {type: 'stat', pos: 'DEF', val: 2}},
+            {name: "Lev Ellup", desc: "+1 star to newly signed talents"},
+            {name: "Colly Flowers", desc: "+1 ATT, MID & DEF", effect: {type: 'stat', pos: 'ALL', val: 1}},
+            {name: "Tippy Taurway", desc: "If a match ends in a draw, roll 8+ to win"},
+            {name: "Roi Surge", desc: "+15M every season"},
+            {name: "Mark De Man", desc: "+1 MID", effect: {type: 'stat', pos: 'MID', val: 1}},
+            {name: "Lacy Strike", desc: "+2 ATT", effect: {type: 'stat', pos: 'ATT', val: 2}},
+            {name: "Alfie Ness", desc: "+3 MID", effect: {type: 'stat', pos: 'MID', val: 3}},
+            {name: "T. Kitaka", desc: "+3 ATT", effect: {type: 'stat', pos: 'ATT', val: 3}},
+            {name: "Tobanks O'Four", desc: "+3 DEF", effect: {type: 'stat', pos: 'DEF', val: 3}},
+            {name: "Tara P. Sessions", desc: "+2 MID", effect: {type: 'stat', pos: 'MID', val: 2}}
+        ];
+
+        // --- APP STATE ---
+        let bank = 120;
+        let roster = [];
+        let wageTotal = 0;
+        let selectedPlayerToDraft = null;
+        let hiredStaff = [];
+
+        // --- SETUP FUNCTIONS ---
+        function selectTheme(bgColor, textColor, teamName) {
+            document.documentElement.style.setProperty('--theme-color', bgColor);
+            document.documentElement.style.setProperty('--theme-text', textColor);
+            document.getElementById('app-header').innerText = teamName + ' Assistant';
+        }
+
+        function startAssistant() {
+            bank = parseInt(document.getElementById('game-speed').value);
+            updateBankUI();
+            updateDatalist();
+            populateStaffDropdowns();
+            document.getElementById('setup-screen').classList.add('hidden');
+            document.getElementById('main-dashboard').classList.remove('hidden');
+            calcMatchStrength();
+        }
+
+        // --- FINANCE FUNCTIONS ---
+        function updateBankUI() { document.getElementById('bank-balance').innerText = `${bank}M`; }
+
+        function processTransaction(type) {
+            const input = document.getElementById('transaction-amount');
+            const amount = parseInt(input.value);
+            if (!amount || amount <= 0) return;
+            if (type === 'add') bank += amount;
+            if (type === 'sub') bank -= amount;
+            input.value = '';
+            updateBankUI();
+        }
+
+        function quickAdd(amount) { bank += amount; updateBankUI(); }
+
+        function payWages() {
+            if (wageTotal > 0) {
+                if(confirm(`Pay ${wageTotal}M in squad wages?`)) { bank -= wageTotal; updateBankUI(); }
+            } else { alert("No drafted players to pay yet!"); }
+        }
+
+        // --- STAFF FUNCTIONS ---
+        function populateStaffDropdowns() {
+            staffDB.sort((a,b) => a.name.localeCompare(b.name));
+            for(let i=1; i<=3; i++) {
+                let select = document.getElementById(`staff-${i}`);
+                select.innerHTML = `<option value="">-- Slot ${i} Empty --</option>`;
+                staffDB.forEach(s => {
+                    select.innerHTML += `<option value="${s.name}">${s.name} (${s.desc})</option>`;
+                });
+            }
+        }
+
+        function handleStaffChange() {
+            hiredStaff = [];
+            for(let i=1; i<=3; i++) {
+                let sName = document.getElementById(`staff-${i}`).value;
+                if(sName) hiredStaff.push(staffDB.find(s => s.name === sName));
+            }
+            calculateWages(); 
+            calcMatchStrength();
+        }
+
+        // --- DRAFT & TRAIN FUNCTIONS ---
+        function updateDatalist() {
+            const datalist = document.getElementById('player-datalist');
+            datalist.innerHTML = '';
+            const draftedNames = roster.map(p => p.name);
+            playerDB.forEach(p => {
+                if (!draftedNames.includes(p.name)) {
+                    let option = document.createElement('option');
+                    option.value = p.name;
+                    datalist.appendChild(option);
+                }
+            });
+        }
+
+        function previewPlayer() {
+            const input = document.getElementById('player-search').value;
+            const draftedNames = roster.map(p => p.name);
+            selectedPlayerToDraft = playerDB.find(p => p.name.toLowerCase() === input.toLowerCase() && !draftedNames.includes(p.name));
+            const preview = document.getElementById('player-preview');
+            const btn = document.getElementById('draft-btn');
+
+            if (selectedPlayerToDraft) {
+                preview.className = `preview-card bg-${selectedPlayerToDraft.pos}`;
+                document.getElementById('preview-name').innerText = `${selectedPlayerToDraft.name}`;
+                document.getElementById('preview-stats').innerText = `⭐ ${selectedPlayerToDraft.base} | POT ${selectedPlayerToDraft.pot} | CH: ${selectedPlayerToDraft.chem}`;
+                preview.classList.remove('hidden');
+                btn.style.display = 'block';
+            } else {
+                preview.classList.add('hidden');
+                btn.style.display = 'none';
+            }
+        }
+
+        function draftPlayer() {
+            if (!selectedPlayerToDraft) return;
+            if (roster.length >= 23) { alert("Squad limit reached (Max 23 players)."); return; }
+            
+            // Deep clone so training them doesn't edit the master database, and remember original base!
+            let newPlayer = { ...selectedPlayerToDraft, origBase: selectedPlayerToDraft.base };
+            roster.push(newPlayer);
+            roster.sort((a, b) => a.name.localeCompare(b.name)); 
+            
+            document.getElementById('roster-count').innerText = `${roster.length}/23`;
+            renderRoster(); calculateWages(); updateDatalist(); updateTacticsDropdowns();
+            document.getElementById('player-search').value = '';
+            previewPlayer();
+        }
+
+        function removePlayer(name) {
+            if(confirm(`Remove ${name} from your squad?`)) {
+                roster = roster.filter(p => p.name !== name);
+                document.getElementById('roster-count').innerText = `${roster.length}/23`;
+                
+                const pitchSelects = document.querySelectorAll('.pitch-slot');
+                pitchSelects.forEach(select => {
+                    if (select.value === name) { select.value = (select.id === 't-gk') ? 'DEFAULT_GK' : ''; }
+                });
+
+                renderRoster(); calculateWages(); updateDatalist(); handlePitchChange();
+            }
+        }
+
+        function trainPlayer(name, direction) {
+            let player = roster.find(p => p.name === name);
+            if(!player) return;
+
+            if (direction === 1 && player.base < player.pot) player.base++;
+            if (direction === -1 && player.base > player.origBase) player.base--;
+
+            renderRoster();
+            calculateWages();
+            updateTacticsDropdowns();
+            handlePitchChange();
+        }
+
+        function renderRoster() {
+            const positions = ['ATT', 'MID', 'DEF', 'GK', 'UTL'];
+            positions.forEach(pos => {
+                const grid = document.getElementById(`grid-${pos}`);
+                const sec = document.getElementById(`sec-${pos}`);
+                grid.innerHTML = '';
+                const playersInPos = roster.filter(p => p.pos === pos);
+                
+                if (playersInPos.length > 0) {
+                    sec.style.display = 'block';
+                    playersInPos.forEach(p => {
+                        let div = document.createElement('div');
+                        div.className = `player-mini-card border-${p.pos}`;
+                        div.innerHTML = `
+                            <button class="pmc-remove" onclick="removePlayer('${p.name}')">X</button>
+                            <div class="pmc-name">${p.name}</div>
+                            <div class="pmc-stats">
+                                <span>⭐ ${p.base} / ${p.pot}</span>
+                                <div class="train-btns">
+                                    <button class="train-btn" onclick="trainPlayer('${p.name}', -1)" ${p.base <= p.origBase ? 'disabled' : ''}>-</button>
+                                    <button class="train-btn" onclick="trainPlayer('${p.name}', 1)" ${p.base >= p.pot ? 'disabled' : ''}>+</button>
+                                </div>
+                            </div>
+                            <div class="pmc-chem">CH: ${p.chem}</div>
+                        `;
+                        grid.appendChild(div);
+                    });
+                } else { sec.style.display = 'none'; }
+            });
+        }
+
+        function calculateWages() {
+            let baseWages = roster.reduce((sum, p) => sum + p.base, 0);
+            
+            // Check for Sally Reecut
+            let hasSally = hiredStaff.find(s => s.effect && s.effect.type === 'wage');
+            if (hasSally) {
+                baseWages = Math.ceil(baseWages * hasSally.effect.val); // Half wages, rounded up just in case
+            }
+            
+            wageTotal = baseWages;
+            document.getElementById('wage-btn').innerText = `Pay Wages (${wageTotal}M)`;
+        }
+
+        // --- TACTICS BOARD LOGIC ---
+        function updateTacticsDropdowns() {
+            const slots = document.querySelectorAll('.pitch-slot');
+            slots.forEach(select => {
+                const currentVal = select.value;
+                const isGKSlot = select.id === 't-gk';
+                const defaultText = isGKSlot ? "1⭐ GK" : select.id.includes('att') ? "ATT" : select.id.includes('mid') ? "MID" : select.id.includes('def') ? "DEF" : "Opt";
+                
+                select.innerHTML = ''; 
+                
+                if (isGKSlot) {
+                    select.innerHTML = `<option value="DEFAULT_GK">1⭐ GK</option>`;
+                    roster.filter(p => p.pos === 'GK').forEach(p => {
+                        select.innerHTML += `<option value="${p.name}">${p.name} (⭐${p.base})</option>`;
+                    });
+                } else {
+                    select.innerHTML = `<option value="">${defaultText}</option>`;
+                    roster.filter(p => p.pos !== 'GK').forEach(p => {
+                        select.innerHTML += `<option value="${p.name}">${p.name} (${p.pos} ⭐${p.base})</option>`;
+                    });
+                }
+                
+                if (currentVal === 'DEFAULT_GK' || roster.find(p => p.name === currentVal)) { select.value = currentVal; }
+            });
+        }
+
+        function updateCaptainList() {
+            const capSelect = document.getElementById('t-captain-name');
+            const currentCap = capSelect.value;
+            capSelect.innerHTML = '<option value="">None</option>';
+
+            const pitchRows = ['t-att1', 't-att2', 't-att3', 't-att4', 't-mid1', 't-mid2', 't-mid3', 't-mid4', 't-mid5', 't-gk', 't-def1', 't-def2', 't-def3', 't-def4'];
+            let onPitch = [];
+            
+            pitchRows.forEach(id => {
+                let val = document.getElementById(id).value;
+                if (val && val !== 'DEFAULT_GK') onPitch.push(val);
+            });
+
+            onPitch.sort().forEach(name => {
+                capSelect.innerHTML += `<option value="${name}">${name}</option>`;
+            });
+
+            if (onPitch.includes(currentCap)) { capSelect.value = currentCap; }
+        }
+
+        function handlePitchChange() {
+            updateCaptainList();
+            calcMatchStrength();
+        }
+
+        function calcMatchStrength() {
+            const pitchRows = {
+                ATT: ['t-att1', 't-att2', 't-att3', 't-att4'],
+                MID: ['t-mid1', 't-mid2', 't-mid3', 't-mid4', 't-mid5'],
+                DEF: ['t-gk', 't-def1', 't-def2', 't-def3', 't-def4']
+            };
+
+            const mandatories = ['t-att1', 't-att2', 't-mid1', 't-mid2', 't-mid3', 't-def1', 't-def2', 't-def3'];
+            
+            let sumBase = 0;
+            let sumPen = 0;
+            let sumChem = 0;
+            
+            let rowTotals = { ATT: 0, MID: 0, DEF: 0 };
+            let totalPlayers = 0;
+            let warnings = [];
+            let seenPlayers = new Set();
+            
+            const rowValueMap = { 'ATT': 3, 'MID': 2, 'DEF': 1 };
+            const posValueMap = { 'ATT': 3, 'MID': 2, 'DEF': 1, 'GK': 0 }; 
+
+            for (const [rowName, slotIDs] of Object.entries(pitchRows)) {
+                let currentRowScore = 0;
+
+                for (let i = 0; i < slotIDs.length; i++) {
+                    const select = document.getElementById(slotIDs[i]);
+                    const pName = select.value;
+                    
+                    if (!pName) continue; 
+
+                    let player = (pName === 'DEFAULT_GK') ? defaultGK : roster.find(p => p.name === pName);
+                    if (!player) continue;
+
+                    if (seenPlayers.has(player.name) && player.name !== 'DEFAULT_GK') {
+                        warnings.push(`Duplicate: ${player.name}`);
+                    }
+                    seenPlayers.add(player.name);
+                    if (player.name !== 'DEFAULT_GK') totalPlayers++;
+
+                    let slotBase = player.base;
+                    sumBase += slotBase;
+
+                    let slotPen = 0;
+                    if (player.pos !== 'UTL' && player.pos !== 'GK') {
+                        const rowVal = rowValueMap[rowName];
+                        const playerVal = posValueMap[player.pos];
+                        const diff = Math.abs(playerVal - rowVal);
+                        slotPen = (diff * 0.5);
+                        sumPen += slotPen;
+                    }
+
+                    let slotChem = 0;
+                    if (i < slotIDs.length - 1) {
+                        const nextSelect = document.getElementById(slotIDs[i+1]);
+                        const nextName = nextSelect.value;
+                        if (nextName) {
+                            let nextPlayer = (nextName === 'DEFAULT_GK') ? defaultGK : roster.find(p => p.name === nextName);
+                            if (nextPlayer) {
+                                if ((player.chem === 'Right' || player.chem === 'Both') && 
+                                    (nextPlayer.chem === 'Left' || nextPlayer.chem === 'Both')) {
+                                    slotChem = 1; 
+                                    sumChem += slotChem;
+                                }
+                            }
+                        }
+                    }
+
+                    currentRowScore += (slotBase - slotPen + slotChem);
+                }
+                rowTotals[rowName] = Math.max(0, currentRowScore);
+            }
+
+            // A. Check for B. Friend (2x Chemistry)
+            let hasBFriend = hiredStaff.find(s => s.effect && s.effect.type === 'chem');
+            if (hasBFriend) {
+                let extraChem = sumChem; 
+                sumChem += extraChem;
+            }
+
+            // B. Check for Staff Position Stats
+            let staffPosBonus = { ATT: 0, MID: 0, DEF: 0 };
+            hiredStaff.forEach(s => {
+                if (s.effect && s.effect.type === 'stat') {
+                    if (s.effect.pos === 'ALL') {
+                        staffPosBonus.ATT += s.effect.val;
+                        staffPosBonus.MID += s.effect.val;
+                        staffPosBonus.DEF += s.effect.val;
+                    } else {
+                        staffPosBonus[s.effect.pos] += s.effect.val;
+                    }
+                }
+            });
+
+            rowTotals.ATT += staffPosBonus.ATT;
+            rowTotals.MID += staffPosBonus.MID;
+            rowTotals.DEF += staffPosBonus.DEF;
+            let totalStaffBonus = staffPosBonus.ATT + staffPosBonus.MID + staffPosBonus.DEF;
+
+            // C. Captain & Captain Staff Boosts
+            const captainName = document.getElementById('t-captain-name').value;
+            let capBonus = 0;
+            let visualStaffCapBonus = 0; // For the visual breakdown box
+
+            if (captainName) {
+                capBonus += parseInt(document.getElementById('t-captain-bonus').value) || 0;
+                hiredStaff.forEach(s => {
+                    if (s.effect && s.effect.type === 'cap') { 
+                        capBonus += s.effect.val; 
+                        visualStaffCapBonus += s.effect.val;
+                    }
+                });
+
+                // Locate the captain on the pitch and apply the bonus to their specific row
+                let captainRow = null;
+                for (const [rowName, slotIDs] of Object.entries(pitchRows)) {
+                    for (let id of slotIDs) {
+                        if (document.getElementById(id).value === captainName) {
+                            captainRow = rowName;
+                            break;
+                        }
+                    }
+                    if (captainRow) break;
+                }
+                
+                if (captainRow) {
+                    rowTotals[captainRow] += capBonus;
+                }
+            }
+
+            let isComplete = true;
+            mandatories.forEach(id => { if(document.getElementById(id).value === "") isComplete = false; });
+            
+            if (!isComplete) warnings.push("Missing mandatory players!");
+            if (totalPlayers > 11) warnings.push(`Too many players! (${totalPlayers}/11 allowed)`);
+            if (totalPlayers < 11 && isComplete) warnings.push(`Formation incomplete (${totalPlayers}/11 outfielders).`);
+
+            // 4. Update UI
+            document.getElementById('score-att').innerText = rowTotals.ATT.toFixed(1);
+            document.getElementById('score-mid').innerText = rowTotals.MID.toFixed(1);
+            document.getElementById('score-def').innerText = rowTotals.DEF.toFixed(1);
+
+            document.getElementById('bd-base').innerText = sumBase.toFixed(1);
+            document.getElementById('bd-pen').innerText = "-" + sumPen.toFixed(1);
+            document.getElementById('bd-chem').innerText = "+" + sumChem.toFixed(1) + (hasBFriend ? " (x2)" : "");
+            
+            // Add the captain staff bonus to the visual breakdown so it's clear where the points came from
+            let displayStaffBonus = totalStaffBonus + visualStaffCapBonus;
+            document.getElementById('bd-staff').innerText = "+" + displayStaffBonus.toFixed(1);
+
+            const finalTotal = rowTotals.ATT + rowTotals.MID + rowTotals.DEF + (hasBFriend ? (sumChem/2) : 0); 
+            
+            document.getElementById('match-day-total').innerText = finalTotal.toFixed(1);
+            
+            const warningDiv = document.getElementById('tactics-warning');
+            if (warnings.length > 0) {
+                warningDiv.innerText = warnings.join(" | ");
+                warningDiv.style.color = "#f44336";
+            } else {
+                warningDiv.innerText = "Formation Valid & Ready!";
+                warningDiv.style.color = "#4caf50";
+            }
+        }
+    </script>
+</body>
+</html>
+        /* Setup */
+        .color-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 20px; }
+        .color-btn { 
+            padding: 15px; border: none; border-radius: 8px; color: white; font-weight: bold; cursor: pointer;
+            text-transform: uppercase; font-size: 0.9em; box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        select, input[type="number"], input[type="text"] {
+            width: 100%; padding: 12px; margin-bottom: 15px; border-radius: 6px; border: 1px solid #444;
+            background: #2a2a2a; color: white; font-size: 16px; box-sizing: border-box;
+        }
+        select option { background-color: #1e1e1e; color: #fff; }
+
+        button.primary-btn {
+            background-color: var(--theme-color); color: var(--theme-text);
+            width: 100%; padding: 15px; border: none; border-radius: 8px;
+            font-size: 1.1em; font-weight: bold; cursor: pointer;
+        }
+
+        /* Finance */
+        .balance-display { text-align: center; font-size: 3em; font-weight: bold; margin: 10px 0; color: var(--theme-color); }
+        .finance-controls { display: flex; gap: 10px; margin-bottom: 15px; }
+        .finance-btn { flex: 1; padding: 15px; font-size: 1.5em; font-weight: bold; border: none; border-radius: 8px; cursor: pointer; color: white; }
+        .btn-add { background-color: #2e7d32; }
+        .btn-sub { background-color: #c62828; }
+        
+        /* Training Buttons */
+        .train-btns { display: flex; gap: 4px; }
+        .train-btn { 
+            background: #444; color: white; border: none; border-radius: 4px; 
+            width: 24px; height: 24px; font-weight: bold; font-size: 1.1em; cursor: pointer; 
+            display: flex; align-items: center; justify-content: center;
+        }
+        .train-btn:disabled { opacity: 0.3; cursor: not-allowed; background: #222;}
+
+        /* Draft Preview */
+        .preview-card { display: flex; justify-content: space-between; align-items: center; padding: 12px; border-radius: 8px; margin-bottom: 15px; font-weight: bold; }
+        .stats-badge { background: rgba(0,0,0,0.5); padding: 4px 8px; border-radius: 4px; font-size: 0.9em; color: white;}
+
+        /* Mini-Card Roster */
+        .pos-section { margin-bottom: 15px; }
+        .pos-header { font-size: 0.9em; text-transform: uppercase; letter-spacing: 1px; color: var(--text-muted); margin-bottom: 5px; border-bottom: 1px solid #333; padding-bottom: 2px;}
+        .card-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px; }
+        
+        .player-mini-card {
+            background: #2a2a2a; border-radius: 6px; padding: 8px; position: relative;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.4); border-top: 4px solid #333;
+        }
+        .pmc-name { font-weight: bold; font-size: 0.95em; margin-bottom: 4px; padding-right: 20px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;}
+        .pmc-stats { font-size: 0.8em; color: #ccc; display: flex; justify-content: space-between; align-items: center; margin-top: 5px;}
+        .pmc-chem { font-size: 0.75em; opacity: 0.8; margin-top: 2px; }
+        .pmc-remove {
+            position: absolute; top: 5px; right: 5px; background: #c62828; color: white; 
+            border: none; border-radius: 50%; width: 20px; height: 20px; font-size: 10px; 
+            font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center;
+        }
+
+        /* Tactics Board */
+        .pitch {
+            background: #1b5e20; border: 2px solid #4caf50; border-radius: 8px; padding: 10px;
+            display: flex; flex-direction: column; gap: 10px;
+        }
+        .pitch-line { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+        .pitch-row { display: flex; justify-content: center; gap: 4px; flex: 1; }
+        .pitch-slot {
+            flex: 1; min-width: 0; 
+            padding: 8px 2px; font-size: 0.75em; border-radius: 4px;
+            background: #222; color: #fff; border: 1px solid #555; text-align: center;
+            text-overflow: ellipsis; overflow: hidden; white-space: nowrap;
+        }
+        .slot-mand-att { border: 2px solid var(--pos-att); }
+        .slot-mand-mid { border: 2px solid var(--pos-mid); }
+        .slot-mand-def { border: 2px solid var(--pos-def); }
+        .slot-mand-gk  { border: 2px solid var(--pos-gk); }
+        
+        .row-score {
+            background: rgba(0,0,0,0.6); color: var(--accent, #fff); font-weight: bold;
+            padding: 8px 10px; border-radius: 6px; min-width: 35px; text-align: center;
+            border: 1px solid rgba(255,255,255,0.2); font-size: 0.9em;
+        }
+
+        /* Tactics Summary Breakdown */
+        .tactics-summary { margin-top: 15px; padding: 15px; background: #111; border-radius: 8px; border: 1px solid #333; }
+        .breakdown-grid { display: grid; grid-template-columns: 1fr auto; gap: 8px; font-size: 0.9em; margin-bottom: 15px; color: #ccc;}
+        .breakdown-grid span:nth-child(even) { font-weight: bold; text-align: right; color: #fff;}
+        .breakdown-row-input { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; font-size: 0.9em; color: #ccc;}
+        .breakdown-row-input select { width: 140px; margin-bottom: 0; padding: 6px; font-size: 0.9em; text-align: center;}
+        
+        .match-stars-container { text-align: center; border-top: 1px solid #444; padding-top: 15px; margin-top: 10px;}
+        .match-stars { font-size: 2.5em; font-weight: bold; color: var(--theme-color); line-height: 1; }
+        .validation-warning { color: #f44336; font-size: 0.85em; font-weight: bold; margin-top: 8px; }
+
+        /* Dynamic Colors */
+        .bg-ATT { background-color: var(--pos-att); color: white; }
+        .bg-MID { background-color: var(--pos-mid); color: var(--pos-mid-text); }
+        .bg-DEF { background-color: var(--pos-def); color: white; }
+        .bg-GK { background-color: var(--pos-gk); color: var(--pos-gk-text); }
+        .bg-UTL { background-color: var(--pos-utl); color: white; }
+        .border-ATT { border-top-color: var(--pos-att); }
+        .border-MID { border-top-color: var(--pos-mid); }
+        .border-DEF { border-top-color: var(--pos-def); }
+        .border-GK { border-top-color: var(--pos-gk); }
+        .border-UTL { border-top-color: var(--pos-utl); }
+
+    </style>
+</head>
+<body>
+
+    <header id="app-header">Superclub Assistant</header>
+
+    <div class="container">
+        
+        <div id="setup-screen" class="card">
+            <h2>Club Setup</h2>
+            <div class="color-grid">
                 <button class="color-btn" style="background:#d32f2f" onclick="selectTheme('#d32f2f', 'white', 'Red')">Red</button>
                 <button class="color-btn" style="background:#1976d2" onclick="selectTheme('#1976d2', 'white', 'Blue')">Blue</button>
                 <button class="color-btn" style="background:#fbc02d; color:black;" onclick="selectTheme('#fbc02d', 'black', 'Yellow')">Yellow</button>
@@ -765,4 +1470,5 @@
         }
     </script>
 </body>
+
 </html>
