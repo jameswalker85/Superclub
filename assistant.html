@@ -117,6 +117,14 @@
             border: none; border-radius: 50%; width: 20px; height: 20px; font-size: 10px; 
             font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center;
         }
+        
+        /* Physio Cards */
+        .physio-card { border-top: 4px solid #c62828; background: #2b1111; }
+        .physio-heal {
+            position: absolute; top: 5px; right: 5px; background: #388e3c; color: white; 
+            border: none; border-radius: 50%; width: 20px; height: 20px; font-size: 12px; 
+            font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center;
+        }
 
         /* Tactics Board */
         .pitch {
@@ -165,6 +173,7 @@
         .border-GK { border-top-color: var(--pos-gk); }
         .border-UTL { border-top-color: var(--pos-utl); }
 
+        .reset-btn { background: transparent; border: 1px solid #c62828; color: #c62828; padding: 10px 20px; border-radius: 6px; cursor: pointer; width: 100%; margin-top: 30px; font-size: 0.9em;}
     </style>
 </head>
 <body>
@@ -275,6 +284,20 @@
                     </div>
                 </div>
             </div>
+            
+            <div class="card" style="border-top-color: #c62828;">
+                <h2 style="color: #ef5350;">Physio Room 🚑</h2>
+                <div style="font-size: 0.85em; color: var(--text-muted); margin-bottom: 10px;">Admit injured players. They will be removed from the pitch and squad list.</div>
+                
+                <div style="display: flex; gap: 10px; margin-bottom: 15px;">
+                    <select id="physio-select" style="margin-bottom: 0;">
+                        <option value="">-- Select player to admit --</option>
+                    </select>
+                    <button class="primary-btn" style="width: auto; background-color: #c62828; padding: 12px 20px;" onclick="admitToPhysio()">Admit</button>
+                </div>
+
+                <div class="card-grid" id="grid-physio"></div>
+            </div>
 
             <div class="card">
                 <h2 style="display: flex; justify-content: space-between;">
@@ -303,8 +326,15 @@
                 <select id="staff-1" onchange="handleStaffChange()"><option value="">-- Slot 1 Empty --</option></select>
                 <select id="staff-2" onchange="handleStaffChange()"><option value="">-- Slot 2 Empty --</option></select>
                 <select id="staff-3" onchange="handleStaffChange()"><option value="">-- Slot 3 Empty --</option></select>
+                
+                <div id="staff-details-box" style="margin-top: 15px; padding-top: 15px; border-top: 1px dashed #444; display: none;">
+                    <h3 style="font-size: 0.9em; text-transform: uppercase; color: var(--theme-color); margin-top: 0; margin-bottom: 8px;">Staff Dossier</h3>
+                    <div id="staff-details-content" style="font-size: 0.85em; color: #ccc; line-height: 1.4;"></div>
+                </div>
             </div>
             
+            <button class="reset-btn" onclick="resetGame()">Start New Game (Clear Data)</button>
+
         </div>
     </div>
 
@@ -330,38 +360,38 @@
 
         // --- STAFF DATABASE ---
         const staffDB = [
-            {name: "Meme Shearer", desc: "+1 status level on stadium income"},
-            {name: "Mae Khit", desc: "+1 player development"},
-            {name: "Garibaldi Sr", desc: "Get Garibaldi for 60M on deadline day"},
-            {name: "Hugh Gloves", desc: "+1 DEF", effect: {type: 'stat', pos: 'DEF', val: 1}},
-            {name: "Mira Clecure", desc: "Injured players back for next game"},
-            {name: "N. Ginear", desc: "+ 1 investment action"},
-            {name: "Dwight Price", desc: "+20M every season"},
-            {name: "Goldi Gerr", desc: "+1 player appeal"},
-            {name: "Bill Benjamin", desc: "+50M every season"},
-            {name: "Kip Dos Yeres", desc: "+2 scout cards"},
-            {name: "Jet Zetter", desc: "+1 scout card"},
-            {name: "Chuck Long", desc: "+1 ATT", effect: {type: 'stat', pos: 'ATT', val: 1}},
-            {name: "Sally Reecut", desc: "Half wages", effect: {type: 'wage', val: 0.5}},
-            {name: "Will Lowbawl", desc: "5M discount on deadline day"},
-            {name: "Line Upreed", desc: "Captain boost +2", effect: {type: 'cap', val: 2}},
-            {name: "Uppon A. Wei", desc: "+1 player development"},
-            {name: "Agil Itty", desc: "+1 DEF", effect: {type: 'stat', pos: 'DEF', val: 1}},
-            {name: "Chriss Crossover", desc: "+1 MID", effect: {type: 'stat', pos: 'MID', val: 1}},
-            {name: "Finn Isher", desc: "+1 ATT", effect: {type: 'stat', pos: 'ATT', val: 1}},
-            {name: "B. Friend", desc: "2x chemistry", effect: {type: 'chem', val: 2}},
-            {name: "Elle Capitán", desc: "Captain boost +1", effect: {type: 'cap', val: 1}},
-            {name: "Lastic Takl", desc: "+2 DEF", effect: {type: 'stat', pos: 'DEF', val: 2}},
-            {name: "Lev Ellup", desc: "+1 star to newly signed talents"},
-            {name: "Colly Flowers", desc: "+1 ATT, MID & DEF", effect: {type: 'stat', pos: 'ALL', val: 1}},
-            {name: "Tippy Taurway", desc: "If a match ends in a draw, roll 8+ to win"},
-            {name: "Roi Surge", desc: "+15M every season"},
-            {name: "Mark De Man", desc: "+1 MID", effect: {type: 'stat', pos: 'MID', val: 1}},
-            {name: "Lacy Strike", desc: "+2 ATT", effect: {type: 'stat', pos: 'ATT', val: 2}},
-            {name: "Alfie Ness", desc: "+3 MID", effect: {type: 'stat', pos: 'MID', val: 3}},
-            {name: "T. Kitaka", desc: "+3 ATT", effect: {type: 'stat', pos: 'ATT', val: 3}},
-            {name: "Tobanks O'Four", desc: "+3 DEF", effect: {type: 'stat', pos: 'DEF', val: 3}},
-            {name: "Tara P. Sessions", desc: "+2 MID", effect: {type: 'stat', pos: 'MID', val: 2}}
+            {name: "Meme Shearer", desc: "+1 status level on stadium income", longDesc: "Meme Shearer gives you a massive online following, resulting in higher income and better player appeal. Income: Collect the stadium income that is one tier above where you finished on your stadium card. Player appeal: You can participate in buying unhappy players and protect your own players as if you finished one status level higher than you actually did."},
+            {name: "Mae Khit", desc: "+1 player development", longDesc: "Mae Khit lets you develop one player more than it says on your training card. Example: 'Add max 2 stars to 2 players' will become 'Add max 2 stars to 3 players' with Mae Khit on your team."},
+            {name: "Garibaldi Sr", desc: "Get Garibaldi for 60M on deadline day", longDesc: "If you hire Garibaldi Sr., he will make sure that you get to sign his son for 60M if he becomes available on Deadline day. If Garibaldi has already signed for a club by the time Garibaldi Sr. comes along, there is no value in hiring him."},
+            {name: "Hugh Gloves", desc: "+1 DEF", effect: {type: 'stat', pos: 'DEF', val: 1}, longDesc: "Hugh Gloves loves clean sheets so much that he sometimes gets up in the middle of the night to change them. He also gives you +1 in defence in every match."},
+            {name: "Mira Clecure", desc: "Injured players back for next game", longDesc: "Mira Clecure is a medical miracle worker. She brings your injured players back for the next match, but you still have to make a substitution in the match where the injury occurred. If the captain is injured, you still lose the use of your captain boost for this match."},
+            {name: "N. Ginear", desc: "+ 1 investment action", longDesc: "N. Ginear is a visionary strategist. With him on board, your club can develop off the pitch quicker than everyone else by having one extra action – three in total – during the investment phase of every off-season."},
+            {name: "Dwight Price", desc: "+20M every season", longDesc: "Dwight Price is a wizard when it comes to spotting commercial opportunities. With him in your club, you can count on 20 million on top of your other income during the Finance step every off-season."},
+            {name: "Goldi Gerr", desc: "+1 player appeal", longDesc: "Goldi Gerr knows everyone worth knowing in the world of football. The increased player appeal means you can participate in buying unhappy players and protect your own players as if you finished one status level higher than you actually did."},
+            {name: "Bill Benjamin", desc: "+50M every season", longDesc: "Bill Benjamin sees football as more of a hobby than a business. If you’re willing to take the initial cost of onboarding him and letting him load your club with debt, he will back you with a substantial investment of 50 million every season."},
+            {name: "Kip Dos Yeres", desc: "+2 scout cards", longDesc: "Kip Dos Yeres keeps dossiers on players all over the world of football. With him in your club, you get to scout two more players than it says on your scouting card during the scouting phase of every off-season."},
+            {name: "Jet Zetter", desc: "+1 scout card", longDesc: "Jet Zetter has connections all over the world of football. With him in your club, you get to scout one more player than it says on your scouting card during the scouting phase of every off-season."},
+            {name: "Chuck Long", desc: "+1 ATT", effect: {type: 'stat', pos: 'ATT', val: 1}, longDesc: "Chuck Long feels that throw-ins are a neglected part of the game and has devoted his entire adult life to mastering the art. Having him on the sideline gives you +1 in attack in every match."},
+            {name: "Sally Reecut", desc: "Half wages", effect: {type: 'wage', val: 0.5}, longDesc: "Sally Reecut loves to save money. Utilise her talent to cut your wage bill in half every off-season. The better your squad, the more you save. In case of an odd number wage bill, you round up."},
+            {name: "Will Lowbawl", desc: "5M discount on deadline day", longDesc: "Will Lowbawl has never paid the total amount for anything in his entire life. Hire him, and you get a 5 million discount on every player you sign on Deadline day for the rest of the game. You conduct the bidding war as usual – if you win, you pay 5 million less than you bid."},
+            {name: "Line Upreed", desc: "Captain boost +2", effect: {type: 'cap', val: 2}, longDesc: "Line Upreed helps your captain to lead in a better way. With her in your club, the captain boost value is two higher than it says on your boost chip for every match for the rest of the game."},
+            {name: "Uppon A. Wei", desc: "+1 player development", longDesc: "Uppon A. Wei could have been a sensational player, but nobody was there to guide him. He won’t let that happen to anyone else, and he enables you to develop one player more than it says on your training card."},
+            {name: "Agil Itty", desc: "+1 DEF", effect: {type: 'stat', pos: 'DEF', val: 1}, longDesc: "Agil Itty loves the pure athletic aspects of the game so much that sometimes he hides the balls, forcing everyone to run and lift instead. It can cause quite the commotion, but it also gives you +1 in defence in every match."},
+            {name: "Chris Crossover", desc: "+1 MID", effect: {type: 'stat', pos: 'MID', val: 1}, longDesc: "Chris Crossover has gotten into countless traffic accidents because he can’t help signalling the wrong way. Tricking others in his blood, and he gives you +1 in midfield in every match."},
+            {name: "Finn Isher", desc: "+1 ATT", effect: {type: 'stat', pos: 'ATT', val: 1}, longDesc: "Finn Isher loves the sound of a ball hitting the back of the net. He has it as his ringtone and gives you +1 in attack in every match."},
+            {name: "B. Friend", desc: "2x chemistry", effect: {type: 'chem', val: 2}, longDesc: "B. Friend can befriend anyone, but more importantly, he makes existing friendships within the squad even better. With B. Friend around, all chemistry stars you can fit into your starting 11 counts for two stars instead of just 1."},
+            {name: "Elle Capitán", desc: "Captain boost +1", effect: {type: 'cap', val: 1}, longDesc: "Elle Capitán helps your captain to lead in a better way. With her in your club, the captain boost value is one higher than it says on your boost chip for every match for the rest of the game."},
+            {name: "Lastic Takl", desc: "+2 DEF", effect: {type: 'stat', pos: 'DEF', val: 2}, longDesc: "Lastic Takl celebrates tackles like they were goals and goals as if they were tackles. He gives you +2 in defence in every match."},
+            {name: "Lev Ellup", desc: "+1 star to newly signed talents", longDesc: "Lev Ellup immediately affects talented players he comes into contact with. With him in your club, every player you sign gets one ability star for free. This does not apply to talents already in your squad when Lev Ellup comes onboard."},
+            {name: "Colly Flowers", desc: "+1 ATT, MID & DEF", effect: {type: 'stat', pos: 'ALL', val: 1}, longDesc: "Colly Flowers hates processed foods. Her very graphic presentations of how junk food is made make everyone in your club agree with her. That gives you +1 in every third (attack, midfield, defence) in every match."},
+            {name: "Tippy Taurway", desc: "If a match ends in a draw, roll 8+ to win", longDesc: "Tippy Taurway instils a real fighting spirit in your squad. If either a match or a SIM is heading for a draw, she gives you one last chance to win it. With both dice, roll an eight or higher to win. Seven or lower, the match ends in a draw."},
+            {name: "Roi Surge", desc: "+15M every season", longDesc: "Roi Surge is a business genius. With him in your club, collect 15 million on top of your other income during the Finance step every off-season for the rest of the game."},
+            {name: "Mark De Man", desc: "+1 MID", effect: {type: 'stat', pos: 'MID', val: 1}, longDesc: "Mark De Man might not be a leader, but he’s a tremendous follower. He will follow his opponent so closely in training sessions that it can’t help but rub off on the people around him. So that makes him sort of a leader anyway, and it gives you +1 in midfield in every match."},
+            {name: "Lacy Strike", desc: "+2 ATT", effect: {type: 'stat', pos: 'ATT', val: 2}, longDesc: "Lacy Strike has scientifically researched the best way to strike a football. It’s not an easy technique, but it can be learned. Doing so gives you +2 in attack in every match."},
+            {name: "Alfie Ness", desc: "+3 MID", effect: {type: 'stat', pos: 'MID', val: 3}, longDesc: "Alfie Ness teaches his players to love the ball like they did when they were young. He insists that players bring their own personal ball everywhere – to lunch, bed etc. That gives you +3 in midfield in every match."},
+            {name: "T. Kitaka", desc: "+3 ATT", effect: {type: 'stat', pos: 'ATT', val: 3}, longDesc: "T. Kitaka lives for entertaining, attacking football. Hiring him gives you +3 in attack in every match."},
+            {name: "Tobanks O'Four", desc: "+3 DEF", effect: {type: 'stat', pos: 'DEF', val: 3}, longDesc: "Tobanks O’Four is as old school as they come. Conceding a goal makes him physically ill and mentally unstable. Nobody wants to see that, so everyone in your squad defends as if their life depended on it, giving you +3 in defence in every match."},
+            {name: "Tara P. Sessions", desc: "+2 MID", effect: {type: 'stat', pos: 'MID', val: 2}, longDesc: "Tara P. Sessions was always told that she was too competitive growing up. Naturally, she wanted to prove everyone wrong, and now she gives her employer +2 in midfield in every match."}
         ];
 
         // --- APP STATE ---
@@ -370,6 +400,74 @@
         let wageTotal = 0;
         let selectedPlayerToDraft = null;
         let hiredStaff = [];
+
+        // --- AUTOSAVE ENGINE ---
+        window.onload = loadState;
+
+        function saveState() {
+            const state = {
+                bank: bank,
+                roster: roster,
+                pitch: {},
+                captain: document.getElementById('t-captain-name').value,
+                capBonus: document.getElementById('t-captain-bonus').value,
+                staff1: document.getElementById('staff-1').value,
+                staff2: document.getElementById('staff-2').value,
+                staff3: document.getElementById('staff-3').value,
+                themeBg: document.documentElement.style.getPropertyValue('--theme-color'),
+                themeText: document.documentElement.style.getPropertyValue('--theme-text'),
+                teamName: document.getElementById('app-header').innerText
+            };
+            document.querySelectorAll('.pitch-slot').forEach(slot => { state.pitch[slot.id] = slot.value; });
+            localStorage.setItem('superclubState', JSON.stringify(state));
+        }
+
+        function loadState() {
+            const saved = localStorage.getItem('superclubState');
+            if (saved) {
+                const state = JSON.parse(saved);
+                bank = state.bank;
+                roster = state.roster;
+                
+                document.documentElement.style.setProperty('--theme-color', state.themeBg);
+                document.documentElement.style.setProperty('--theme-text', state.themeText);
+                document.getElementById('app-header').innerText = state.teamName;
+
+                document.getElementById('setup-screen').classList.add('hidden');
+                document.getElementById('main-dashboard').classList.remove('hidden');
+
+                updateBankUI();
+                updateDatalist();
+                populateStaffDropdowns();
+                
+                document.getElementById('staff-1').value = state.staff1 || "";
+                document.getElementById('staff-2').value = state.staff2 || "";
+                document.getElementById('staff-3').value = state.staff3 || "";
+                handleStaffChange(); 
+
+                renderRoster();
+                updateTacticsDropdowns();
+
+                for (const [id, val] of Object.entries(state.pitch)) {
+                    let el = document.getElementById(id);
+                    if (el && Array.from(el.options).some(opt => opt.value === val)) { el.value = val; }
+                }
+
+                updateCaptainList();
+                if(state.captain) document.getElementById('t-captain-name').value = state.captain;
+                if(state.capBonus) document.getElementById('t-captain-bonus').value = state.capBonus;
+
+                calcMatchStrength();
+                document.getElementById('roster-count').innerText = `${roster.length}/23`;
+            }
+        }
+
+        function resetGame() {
+            if(confirm("Are you sure you want to permanently delete your squad and start a fresh game?")) {
+                localStorage.removeItem('superclubState');
+                location.reload();
+            }
+        }
 
         // --- SETUP FUNCTIONS ---
         function selectTheme(bgColor, textColor, teamName) {
@@ -386,6 +484,7 @@
             document.getElementById('setup-screen').classList.add('hidden');
             document.getElementById('main-dashboard').classList.remove('hidden');
             calcMatchStrength();
+            saveState();
         }
 
         // --- FINANCE FUNCTIONS ---
@@ -399,13 +498,14 @@
             if (type === 'sub') bank -= amount;
             input.value = '';
             updateBankUI();
+            saveState();
         }
 
-        function quickAdd(amount) { bank += amount; updateBankUI(); }
+        function quickAdd(amount) { bank += amount; updateBankUI(); saveState(); }
 
         function payWages() {
             if (wageTotal > 0) {
-                if(confirm(`Pay ${wageTotal}M in squad wages?`)) { bank -= wageTotal; updateBankUI(); }
+                if(confirm(`Pay ${wageTotal}M in squad wages?`)) { bank -= wageTotal; updateBankUI(); saveState(); }
             } else { alert("No drafted players to pay yet!"); }
         }
 
@@ -423,12 +523,71 @@
 
         function handleStaffChange() {
             hiredStaff = [];
+            let detailsHTML = "";
+            
             for(let i=1; i<=3; i++) {
                 let sName = document.getElementById(`staff-${i}`).value;
-                if(sName) hiredStaff.push(staffDB.find(s => s.name === sName));
+                if(sName) {
+                    let s = staffDB.find(staff => staff.name === sName);
+                    hiredStaff.push(s);
+                    
+                    // Generate Dossier Text
+                    let infoText = s.longDesc ? s.longDesc : s.desc;
+                    detailsHTML += `<div style="margin-bottom: 10px;"><strong>${s.name}:</strong> ${infoText}</div>`;
+                }
             }
+
+            // Display or Hide Dossier Box
+            const detailsBox = document.getElementById('staff-details-box');
+            if (hiredStaff.length > 0) {
+                document.getElementById('staff-details-content').innerHTML = detailsHTML;
+                detailsBox.style.display = 'block';
+            } else {
+                detailsBox.style.display = 'none';
+            }
+
             calculateWages(); 
             calcMatchStrength();
+            saveState();
+        }
+
+        // --- PHYSIO ROOM FUNCTIONS ---
+        function updatePhysioDropdown() {
+            const select = document.getElementById('physio-select');
+            select.innerHTML = '<option value="">-- Select player to admit --</option>';
+            roster.filter(p => !p.injured).forEach(p => {
+                select.innerHTML += `<option value="${p.name}">${p.name} (${p.pos})</option>`;
+            });
+        }
+
+        function admitToPhysio() {
+            const name = document.getElementById('physio-select').value;
+            if (!name) return;
+            
+            let player = roster.find(p => p.name === name);
+            if (player) {
+                player.injured = true;
+                
+                const pitchSelects = document.querySelectorAll('.pitch-slot');
+                pitchSelects.forEach(select => {
+                    if (select.value === name) { select.value = (select.id === 't-gk') ? 'DEFAULT_GK' : ''; }
+                });
+
+                renderRoster();
+                updateTacticsDropdowns();
+                handlePitchChange();
+                saveState();
+            }
+        }
+
+        function healPlayer(name) {
+            let player = roster.find(p => p.name === name);
+            if (player) {
+                player.injured = false;
+                renderRoster();
+                updateTacticsDropdowns();
+                saveState();
+            }
         }
 
         // --- DRAFT & TRAIN FUNCTIONS ---
@@ -468,8 +627,7 @@
             if (!selectedPlayerToDraft) return;
             if (roster.length >= 23) { alert("Squad limit reached (Max 23 players)."); return; }
             
-            // Deep clone so training them doesn't edit the master database, and remember original base!
-            let newPlayer = { ...selectedPlayerToDraft, origBase: selectedPlayerToDraft.base };
+            let newPlayer = { ...selectedPlayerToDraft, origBase: selectedPlayerToDraft.base, injured: false };
             roster.push(newPlayer);
             roster.sort((a, b) => a.name.localeCompare(b.name)); 
             
@@ -477,6 +635,7 @@
             renderRoster(); calculateWages(); updateDatalist(); updateTacticsDropdowns();
             document.getElementById('player-search').value = '';
             previewPlayer();
+            saveState();
         }
 
         function removePlayer(name) {
@@ -490,6 +649,7 @@
                 });
 
                 renderRoster(); calculateWages(); updateDatalist(); handlePitchChange();
+                saveState();
             }
         }
 
@@ -504,6 +664,7 @@
             calculateWages();
             updateTacticsDropdowns();
             handlePitchChange();
+            saveState();
         }
 
         function renderRoster() {
@@ -512,11 +673,11 @@
                 const grid = document.getElementById(`grid-${pos}`);
                 const sec = document.getElementById(`sec-${pos}`);
                 grid.innerHTML = '';
-                const playersInPos = roster.filter(p => p.pos === pos);
+                const activePlayersInPos = roster.filter(p => p.pos === pos && !p.injured);
                 
-                if (playersInPos.length > 0) {
+                if (activePlayersInPos.length > 0) {
                     sec.style.display = 'block';
-                    playersInPos.forEach(p => {
+                    activePlayersInPos.forEach(p => {
                         let div = document.createElement('div');
                         div.className = `player-mini-card border-${p.pos}`;
                         div.innerHTML = `
@@ -535,16 +696,37 @@
                     });
                 } else { sec.style.display = 'none'; }
             });
+
+            const physioGrid = document.getElementById('grid-physio');
+            physioGrid.innerHTML = '';
+            const injuredPlayers = roster.filter(p => p.injured);
+            
+            if (injuredPlayers.length === 0) {
+                physioGrid.innerHTML = `<div style="color:var(--text-muted); font-size: 0.9em; font-style: italic;">No injuries. The ward is empty.</div>`;
+            } else {
+                injuredPlayers.forEach(p => {
+                    let div = document.createElement('div');
+                    div.className = `player-mini-card physio-card border-${p.pos}`;
+                    div.innerHTML = `
+                        <button class="physio-heal" onclick="healPlayer('${p.name}')">+</button>
+                        <div class="pmc-name" style="text-decoration: line-through; opacity:0.8;">${p.name}</div>
+                        <div class="pmc-stats" style="opacity:0.8;">
+                            <span>⭐ ${p.base} / ${p.pot}</span>
+                        </div>
+                        <div class="pmc-chem" style="color:#ff8a80;">Status: Injured</div>
+                    `;
+                    physioGrid.appendChild(div);
+                });
+            }
+
+            updatePhysioDropdown();
         }
 
         function calculateWages() {
             let baseWages = roster.reduce((sum, p) => sum + p.base, 0);
             
-            // Check for Sally Reecut
             let hasSally = hiredStaff.find(s => s.effect && s.effect.type === 'wage');
-            if (hasSally) {
-                baseWages = Math.ceil(baseWages * hasSally.effect.val); // Half wages, rounded up just in case
-            }
+            if (hasSally) { baseWages = Math.ceil(baseWages * hasSally.effect.val); }
             
             wageTotal = baseWages;
             document.getElementById('wage-btn').innerText = `Pay Wages (${wageTotal}M)`;
@@ -562,17 +744,17 @@
                 
                 if (isGKSlot) {
                     select.innerHTML = `<option value="DEFAULT_GK">1⭐ GK</option>`;
-                    roster.filter(p => p.pos === 'GK').forEach(p => {
+                    roster.filter(p => p.pos === 'GK' && !p.injured).forEach(p => {
                         select.innerHTML += `<option value="${p.name}">${p.name} (⭐${p.base})</option>`;
                     });
                 } else {
                     select.innerHTML = `<option value="">${defaultText}</option>`;
-                    roster.filter(p => p.pos !== 'GK').forEach(p => {
+                    roster.filter(p => p.pos !== 'GK' && !p.injured).forEach(p => {
                         select.innerHTML += `<option value="${p.name}">${p.name} (${p.pos} ⭐${p.base})</option>`;
                     });
                 }
                 
-                if (currentVal === 'DEFAULT_GK' || roster.find(p => p.name === currentVal)) { select.value = currentVal; }
+                if (currentVal === 'DEFAULT_GK' || roster.find(p => p.name === currentVal && !p.injured)) { select.value = currentVal; }
             });
         }
 
@@ -589,16 +771,14 @@
                 if (val && val !== 'DEFAULT_GK') onPitch.push(val);
             });
 
-            onPitch.sort().forEach(name => {
-                capSelect.innerHTML += `<option value="${name}">${name}</option>`;
-            });
-
+            onPitch.sort().forEach(name => { capSelect.innerHTML += `<option value="${name}">${name}</option>`; });
             if (onPitch.includes(currentCap)) { capSelect.value = currentCap; }
         }
 
         function handlePitchChange() {
             updateCaptainList();
             calcMatchStrength();
+            saveState();
         }
 
         function calcMatchStrength() {
@@ -610,33 +790,24 @@
 
             const mandatories = ['t-att1', 't-att2', 't-mid1', 't-mid2', 't-mid3', 't-def1', 't-def2', 't-def3'];
             
-            let sumBase = 0;
-            let sumPen = 0;
-            let sumChem = 0;
-            
+            let sumBase = 0; let sumPen = 0; let sumChem = 0;
             let rowTotals = { ATT: 0, MID: 0, DEF: 0 };
-            let totalPlayers = 0;
-            let warnings = [];
-            let seenPlayers = new Set();
+            let totalPlayers = 0; let warnings = []; let seenPlayers = new Set();
             
             const rowValueMap = { 'ATT': 3, 'MID': 2, 'DEF': 1 };
             const posValueMap = { 'ATT': 3, 'MID': 2, 'DEF': 1, 'GK': 0 }; 
 
             for (const [rowName, slotIDs] of Object.entries(pitchRows)) {
                 let currentRowScore = 0;
-
                 for (let i = 0; i < slotIDs.length; i++) {
                     const select = document.getElementById(slotIDs[i]);
                     const pName = select.value;
-                    
                     if (!pName) continue; 
 
                     let player = (pName === 'DEFAULT_GK') ? defaultGK : roster.find(p => p.name === pName);
                     if (!player) continue;
 
-                    if (seenPlayers.has(player.name) && player.name !== 'DEFAULT_GK') {
-                        warnings.push(`Duplicate: ${player.name}`);
-                    }
+                    if (seenPlayers.has(player.name) && player.name !== 'DEFAULT_GK') { warnings.push(`Duplicate: ${player.name}`); }
                     seenPlayers.add(player.name);
                     if (player.name !== 'DEFAULT_GK') totalPlayers++;
 
@@ -645,89 +816,57 @@
 
                     let slotPen = 0;
                     if (player.pos !== 'UTL' && player.pos !== 'GK') {
-                        const rowVal = rowValueMap[rowName];
-                        const playerVal = posValueMap[player.pos];
-                        const diff = Math.abs(playerVal - rowVal);
-                        slotPen = (diff * 0.5);
-                        sumPen += slotPen;
+                        const diff = Math.abs(posValueMap[player.pos] - rowValueMap[rowName]);
+                        slotPen = (diff * 0.5); sumPen += slotPen;
                     }
 
                     let slotChem = 0;
                     if (i < slotIDs.length - 1) {
-                        const nextSelect = document.getElementById(slotIDs[i+1]);
-                        const nextName = nextSelect.value;
+                        const nextName = document.getElementById(slotIDs[i+1]).value;
                         if (nextName) {
                             let nextPlayer = (nextName === 'DEFAULT_GK') ? defaultGK : roster.find(p => p.name === nextName);
                             if (nextPlayer) {
                                 if ((player.chem === 'Right' || player.chem === 'Both') && 
                                     (nextPlayer.chem === 'Left' || nextPlayer.chem === 'Both')) {
-                                    slotChem = 1; 
-                                    sumChem += slotChem;
+                                    slotChem = 1; sumChem += slotChem;
                                 }
                             }
                         }
                     }
-
                     currentRowScore += (slotBase - slotPen + slotChem);
                 }
                 rowTotals[rowName] = Math.max(0, currentRowScore);
             }
 
-            // A. Check for B. Friend (2x Chemistry)
             let hasBFriend = hiredStaff.find(s => s.effect && s.effect.type === 'chem');
-            if (hasBFriend) {
-                let extraChem = sumChem; 
-                sumChem += extraChem;
-            }
+            if (hasBFriend) { sumChem += sumChem; }
 
-            // B. Check for Staff Position Stats
             let staffPosBonus = { ATT: 0, MID: 0, DEF: 0 };
             hiredStaff.forEach(s => {
                 if (s.effect && s.effect.type === 'stat') {
-                    if (s.effect.pos === 'ALL') {
-                        staffPosBonus.ATT += s.effect.val;
-                        staffPosBonus.MID += s.effect.val;
-                        staffPosBonus.DEF += s.effect.val;
-                    } else {
-                        staffPosBonus[s.effect.pos] += s.effect.val;
-                    }
+                    if (s.effect.pos === 'ALL') { staffPosBonus.ATT += s.effect.val; staffPosBonus.MID += s.effect.val; staffPosBonus.DEF += s.effect.val; } 
+                    else { staffPosBonus[s.effect.pos] += s.effect.val; }
                 }
             });
 
-            rowTotals.ATT += staffPosBonus.ATT;
-            rowTotals.MID += staffPosBonus.MID;
-            rowTotals.DEF += staffPosBonus.DEF;
+            rowTotals.ATT += staffPosBonus.ATT; rowTotals.MID += staffPosBonus.MID; rowTotals.DEF += staffPosBonus.DEF;
             let totalStaffBonus = staffPosBonus.ATT + staffPosBonus.MID + staffPosBonus.DEF;
 
-            // C. Captain & Captain Staff Boosts
             const captainName = document.getElementById('t-captain-name').value;
-            let capBonus = 0;
-            let visualStaffCapBonus = 0; // For the visual breakdown box
+            let capBonus = 0; let visualStaffCapBonus = 0; 
 
             if (captainName) {
                 capBonus += parseInt(document.getElementById('t-captain-bonus').value) || 0;
                 hiredStaff.forEach(s => {
-                    if (s.effect && s.effect.type === 'cap') { 
-                        capBonus += s.effect.val; 
-                        visualStaffCapBonus += s.effect.val;
-                    }
+                    if (s.effect && s.effect.type === 'cap') { capBonus += s.effect.val; visualStaffCapBonus += s.effect.val; }
                 });
 
-                // Locate the captain on the pitch and apply the bonus to their specific row
                 let captainRow = null;
                 for (const [rowName, slotIDs] of Object.entries(pitchRows)) {
-                    for (let id of slotIDs) {
-                        if (document.getElementById(id).value === captainName) {
-                            captainRow = rowName;
-                            break;
-                        }
-                    }
+                    for (let id of slotIDs) { if (document.getElementById(id).value === captainName) { captainRow = rowName; break; } }
                     if (captainRow) break;
                 }
-                
-                if (captainRow) {
-                    rowTotals[captainRow] += capBonus;
-                }
+                if (captainRow) { rowTotals[captainRow] += capBonus; }
             }
 
             let isComplete = true;
@@ -737,7 +876,6 @@
             if (totalPlayers > 11) warnings.push(`Too many players! (${totalPlayers}/11 allowed)`);
             if (totalPlayers < 11 && isComplete) warnings.push(`Formation incomplete (${totalPlayers}/11 outfielders).`);
 
-            // 4. Update UI
             document.getElementById('score-att').innerText = rowTotals.ATT.toFixed(1);
             document.getElementById('score-mid').innerText = rowTotals.MID.toFixed(1);
             document.getElementById('score-def').innerText = rowTotals.DEF.toFixed(1);
@@ -746,22 +884,14 @@
             document.getElementById('bd-pen').innerText = "-" + sumPen.toFixed(1);
             document.getElementById('bd-chem').innerText = "+" + sumChem.toFixed(1) + (hasBFriend ? " (x2)" : "");
             
-            // Add the captain staff bonus to the visual breakdown so it's clear where the points came from
-            let displayStaffBonus = totalStaffBonus + visualStaffCapBonus;
-            document.getElementById('bd-staff').innerText = "+" + displayStaffBonus.toFixed(1);
+            document.getElementById('bd-staff').innerText = "+" + (totalStaffBonus + visualStaffCapBonus).toFixed(1);
 
             const finalTotal = rowTotals.ATT + rowTotals.MID + rowTotals.DEF + (hasBFriend ? (sumChem/2) : 0); 
-            
             document.getElementById('match-day-total').innerText = finalTotal.toFixed(1);
             
             const warningDiv = document.getElementById('tactics-warning');
-            if (warnings.length > 0) {
-                warningDiv.innerText = warnings.join(" | ");
-                warningDiv.style.color = "#f44336";
-            } else {
-                warningDiv.innerText = "Formation Valid & Ready!";
-                warningDiv.style.color = "#4caf50";
-            }
+            if (warnings.length > 0) { warningDiv.innerText = warnings.join(" | "); warningDiv.style.color = "#f44336"; } 
+            else { warningDiv.innerText = "Formation Valid & Ready!"; warningDiv.style.color = "#4caf50"; }
         }
     </script>
 </body>
