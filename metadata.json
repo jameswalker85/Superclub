@@ -1,0 +1,6 @@
+{
+  "name": "Superclub Board Game Companion",
+  "description": "An elegant companion app for the football manager board game Superclub, featuring league table tracking, custom match outcomes, off-season guides, and audio effects.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
